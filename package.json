@@ -2,6 +2,7 @@
   "name": "zeno-ai-core",
   "version": "1.0.0",
   "dependencies": {
-    "@groq/groq-sdk": "latest"
+    "groq-sdk": "latest"
   }
 }
+
