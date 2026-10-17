@@ -1,0 +1,60 @@
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: { message: "Method not allowed" } });
+  }
+
+  try {
+    const { imageBase64, mimeType } = req.body;
+
+    if (!imageBase64) {
+      return res.status(400).json({ error: { message: "Thieu du lieu anh" } });
+    }
+
+    const allKeys = (process.env.GEMINI_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
+
+    if (allKeys.length === 0) {
+      return res.status(500).json({ error: { message: "Chua cau hinh GEMINI_API_KEYS tren server" } });
+    }
+
+    const chosenKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+
+    const geminiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + chosenKey,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Mo ta chi tiet nhung gi co trong anh nay bang tieng Viet, khach quan, ngan gon trong khoang 3-4 cau. Khong binh luan, chi mo ta." },
+              { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } }
+            ]
+          }]
+        })
+      }
+    );
+
+    const data = await geminiResponse.json();
+
+    if (!geminiResponse.ok) {
+      const errMsg = (data.error && data.error.message) ? data.error.message : "Loi khong xac dinh tu Gemini";
+      return res.status(geminiResponse.status).json({ error: { message: errMsg } });
+    }
+
+    const description = data.candidates &&
+      data.candidates[0] &&
+      data.candidates[0].content &&
+      data.candidates[0].content.parts &&
+      data.candidates[0].content.parts[0] &&
+      data.candidates[0].content.parts[0].text;
+
+    if (!description) {
+      return res.status(500).json({ error: { message: "Khong doc duoc mo ta anh tu Gemini" } });
+    }
+
+    return res.status(200).json({ description: description });
+
+  } catch (err) {
+    return res.status(500).json({ error: { message: "Loi server: " + err.message } });
+  }
+}
