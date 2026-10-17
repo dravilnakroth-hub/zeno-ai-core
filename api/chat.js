@@ -1,120 +1,52 @@
+import { Groq } from '@groq/groq-sdk';
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: { message: "Method not allowed" } });
-  }
-
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  
   try {
-    const { messages } = req.body;
+    const { message } = req.body; 
+    
+    if (!message) return res.status(400).json({ error: 'Thieu tin nhan' });
 
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: { message: "Thieu messages" } });
+    const allKeys = (process.env.GROQ_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
+    if (allKeys.length === 0) return res.status(500).json({ error: 'Chua cau hinh GROQ_API_KEYS' });
+    const chosenKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+    const groq = new Groq({ apiKey: chosenKey });
+
+    // 1. CHUẨN HÓA TIN NHẮN VỀ CHỮ VIẾT THƯỜNG ĐỂ NHẬN DIỆN CHÍNH XÁC
+    const lowerMessage = message.toLowerCase();
+
+    // 2. THIẾT LẬP TÍNH CÁCH MẶC ĐỊNH (ZENO GỐC - CÀ KHỊA / NẤU ĂN)
+    let systemPrompt = "Bạn là Zeno AI - Tính cách gốc: tinh nghịch, thích tám chuyện và hay cà khịa nhẹ nhàng bằng tiếng Việt, xưng mày - tao gần gũi. Nếu người dùng hỏi về nấu ăn, hãy trả lời theo phong cách tính cách gốc này.";
+
+    // 3. BỘ LỌC TỰ ĐỘNG NHẬN DIỆN CHỦ ĐỀ QUA TỪ KHÓA (KEYWORD FILTER)
+    
+    // Kiểm tra chủ đề MARKETING & KINH DOANH
+    if (lowerMessage.includes("marketing") || lowerMessage.includes("quảng cáo") || lowerMessage.includes("bán hàng") || lowerMessage.includes("kinh doanh") || lowerMessage.includes("thương hiệu") || lowerMessage.includes("content")) {
+      systemPrompt = "Bạn là Zeno Marketing - Chuyên gia tư vấn content, quảng cáo và xây dựng thương hiệu chuyên nghiệp. Hãy đưa ra các ý tưởng đột phá, chiến lược kinh doanh thực tế, ngắn gọn.";
+    } 
+    
+    // Kiểm tra chủ đề GAME (Kích hoạt Zeno Game)
+    else if (lowerMessage.includes("game") || lowerMessage.includes("chơi trò") || lowerMessage.includes("liên quân") || lowerMessage.includes("pubg") || lowerMessage.includes("genshin") || lowerMessage.includes("fps") || lowerMessage.includes("meta") || lowerMessage.includes("chiến thuật")) {
+      systemPrompt = "Bạn là Zeno Game - Trùm phân tích meta game, am hiểu tips chiến thuật, lối chơi của các tựa game mobile và PC. Trả lời theo phong cách ngắn gọn, chuẩn game thủ, am hiểu trận đấu.";
+    } 
+    
+    // Kiểm tra chủ đề HỌC TẬP & CODE
+    else if (lowerMessage.includes("học") || lowerMessage.includes("bài tập") || lowerMessage.includes("giải bài") || lowerMessage.includes("toán") || lowerMessage.includes("văn") || lowerMessage.includes("lý") || lowerMessage.includes("hóa") || lowerMessage.includes("code") || lowerMessage.includes("lập trình")) {
+      systemPrompt = "Bạn là Zeno Học Tập - Người thầy kiên nhẫn, giảng giải các bài toán, lý thuyết hoặc sửa lỗi code một cách dễ hiểu, chi tiết và vô cùng ân cần, giúp học sinh tiến bộ.";
     }
 
-    const groqKeys = (process.env.GROQ_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
-    const geminiKeys = (process.env.GEMINI_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
-
-    if (groqKeys.length === 0 && geminiKeys.length === 0) {
-      return res.status(500).json({ error: { message: "Chua cau hinh API key nao tren server" } });
-    }
-
-    // ---------- 1. Thu Groq truoc ----------
-    let groqError = "";
-    if (groqKeys.length > 0) {
-      try {
-        const chosenKey = groqKeys[Math.floor(Math.random() * groqKeys.length)];
-        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + chosenKey
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
-            messages: messages,
-            temperature: 0.9
-          })
-        });
-
-        const data = await groqResponse.json();
-        const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-
-        if (groqResponse.ok && text) {
-          return res.status(200).json(data);
-        }
-        groqError = (data && data.error && data.error.message) ? data.error.message : ("Groq status " + groqResponse.status);
-      } catch (e) {
-        groqError = e.message;
-      }
-    }
-
-    // ---------- 2. Groq loi -> chuyen sang Gemini ----------
-    if (geminiKeys.length === 0) {
-      return res.status(502).json({ error: { message: "Groq loi: " + groqError + " (chua co GEMINI_API_KEYS de du phong)" } });
-    }
-
-    const systemText = messages
-      .filter(m => m.role === "system")
-      .map(m => String(m.content))
-      .join("\n\n");
-
-    const contents = messages
-      .filter(m => m.role !== "system")
-      .map(m => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: String(m.content) }]
-      }));
-
-    if (contents.length === 0) {
-      return res.status(400).json({ error: { message: "Khong co tin nhan nguoi dung" } });
-    }
-
-    const body = {
-      contents: contents,
-      generationConfig: { temperature: 0.9 }
-    };
-    if (systemText) {
-      body.systemInstruction = { parts: [{ text: systemText }] };
-    }
-
-    // thu lan luot cac key Gemini (xao tron), key nao ok thi dung
-    const shuffled = geminiKeys.slice().sort(() => Math.random() - 0.5);
-    let geminiError = "";
-
-    for (const key of shuffled) {
-      try {
-        const gRes = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + key,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-          }
-        );
-        const gData = await gRes.json();
-
-        const gText = gData.candidates &&
-          gData.candidates[0] &&
-          gData.candidates[0].content &&
-          gData.candidates[0].content.parts &&
-          gData.candidates[0].content.parts.map(p => p.text || "").join("");
-
-        if (gRes.ok && gText) {
-          // tra ve dung dang OpenAI de frontend khong can sua
-          return res.status(200).json({
-            choices: [{ message: { role: "assistant", content: gText } }],
-            provider: "gemini"
-          });
-        }
-        geminiError = (gData.error && gData.error.message) ? gData.error.message : ("Gemini status " + gRes.status);
-      } catch (e) {
-        geminiError = e.message;
-      }
-    }
-
-    return res.status(502).json({
-      error: { message: "Ca Groq va Gemini deu loi. Groq: " + groqError + " | Gemini: " + geminiError }
+    // 4. BẮN LỆNH SANG ĐẦU NÃO GROQ
+    const completion = await groq.chat.completions.create({
+      model: "llama3-8b-8192",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
     });
-  } catch (err) {
-    return res.status(500).json({ error: { message: "Loi server: " + err.message } });
+    
+    return res.status(200).json({ response: completion.choices.message.content });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 }
