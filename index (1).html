@@ -1604,3 +1604,23 @@ initConversation();
 
 </body>
 </html>
+/* TỰ ĐỘNG PHÓNG TO VÀ DÀN TRANG KHI MỞ TRÊN MÁY TÍNH MÀN HÌNH LỚN */
+@media (min-width: 1024px) {
+  body, .app-container, .container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  /* Nếu con Claude dùng Flexbox làm khung chat, dòng này sẽ ép nó dàn ngang full màn hình */
+  .main-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
