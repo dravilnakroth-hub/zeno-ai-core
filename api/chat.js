@@ -1,3 +1,5 @@
+export const config = { runtime: "edge" };
+
 import { Groq } from '@groq/groq-sdk';
 
 export default async function handler(req, res) {
