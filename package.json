@@ -2,15 +2,7 @@
   "name": "zeno-ai-core",
   "version": "1.0.0",
   "description": "Bộ não cốt lõi của Zeno AI PWA",
-  "main": "api/chat.js",
-  "dependencies": {
-    "@groq/groq-sdk": "latest",
-    "@google/genai": "latest"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "start": "node api/chat.js"
-  },
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   }
