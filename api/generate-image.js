@@ -1,4 +1,3 @@
-// Danh sách các model tạo ảnh chính xác tuyệt đối của Google AI Studio
 const MODELS = [
   "gemini-4-argon",
   "gemini-3.1-flash-lite-image",
@@ -6,7 +5,6 @@ const MODELS = [
 ];
 
 export default async function handler(req, res) {
-  // CORS full cấu hình cho PWA chạy trên Edge
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -19,10 +17,9 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEYS;
   if (!apiKey) {
-    return res.status(200).json({ response: "Thiếu GEMINI_API_KEYS trong cài đặt Environment Variables của Vercel rồi ông ơi!" });
+    return res.status(200).json({ response: "Thiếu GEMINI_API_KEYS trong mục Environment Variables trên Vercel rồi ông ơi!" });
   }
 
-  // Thuật toán vòng lặp quét từng model sơ cua bằng fetch thuần
   for (const model of MODELS) {
     try {
       const url = `https://googleapis.com{model}:generateContent?key=${apiKey}`;
@@ -34,7 +31,7 @@ export default async function handler(req, res) {
           }]
         }],
         generationConfig: {
-          responseMimeType: "application/json" // Ép Google trả về cấu trúc JSON chứa ảnh base64
+          responseMimeType: "application/json"
         }
       };
 
@@ -46,23 +43,19 @@ export default async function handler(req, res) {
 
       const data = await response.json();
 
-      // Phân tích cú pháp xem Google có nhả ảnh về không
       if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
         const textResponse = data.candidates[0].content.parts[0].text;
-        
-        // Trả về JSON sạch sẽ tuyệt đối cho PWA Edge nhận diện
         return res.status(200).json({
-          response: "Tao vẽ xong con mèo cho mày rồi nhé! Xem mượt không nè.",
+          response: "Tao vẽ xong cho mày rồi nhé! Xem mượt không nè ông.",
           image: textResponse.includes("base64") ? textResponse : `data:image/jpeg;base64,${textResponse}`
         });
       }
     } catch (err) {
-      console.log(`Model ${model} báo lỗi, tự động nhảy sang con sơ cua tiếp theo...`);
-      continue; // Lỗi phát tự động bỏ qua để chạy con model tiếp theo ngay
+      console.log(`Model ${model} tạch, tự động nhảy sang con tiếp theo...`);
+      continue;
     }
   }
 
-  // Kịch bản nếu tất cả các model đều hết lượt dùng miễn phí trong ngày
   return res.status(200).json({
     response: "Tao định vẽ cho mày rồi mà tất cả các model tạo ảnh của Google (kể cả hàng sơ cua) đều đang bị quá tải hoặc hết sạch hạn mức Free hôm nay rồi. Tí nữa hoặc ngày mai thử lại xem sao nhé ông!"
   });
