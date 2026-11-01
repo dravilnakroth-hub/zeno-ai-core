@@ -1,9 +1,14 @@
 import dns from "node:dns/promises";
 import net from "node:net";
+import { guard, refund } from "./_lib.js";
+
+const GROQ_MODEL = process.env.GROQ_CHAT_MODEL || "openai/gpt-oss-120b";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 // ===== Mở link: Zeno tự đọc trang web mà người dùng dán vào =====
 const MAX_LINKS = 2;           // tối đa số link đọc mỗi tin nhắn
 const MAX_LINK_CHARS = 7000;   // tối đa ký tự lấy từ mỗi trang
+const LINK_TIMEOUT_MS = 5000;  // mỗi lần tải 1 trang tối đa 5 giây
 
 function isPrivateIp(ip) {
   if (net.isIPv4(ip)) {
@@ -44,7 +49,7 @@ async function fetchLink(rawUrl) {
   for (let hop = 0; hop < 4; hop++) {
     const url = await checkUrl(current);
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const timer = setTimeout(() => ctrl.abort(), LINK_TIMEOUT_MS);
     let r;
     try {
       r = await fetch(url, {
@@ -106,10 +111,6 @@ function hasAny(text, words) {
 }
 
 // Chọn cách xưng hô theo cách người dùng nói, mặc định lịch sự: tớ - cậu
-//  - người dùng xưng "t" / "tao" / "mày"  -> tao - mày
-//  - người dùng xưng "tôi" / "bạn"        -> tôi - bạn
-//  - người dùng xưng "ông"                -> tôi - ông
-//  - người dùng xưng "tớ" / "cậu"         -> tớ - cậu
 function pickPronoun(messages) {
   const userMsgs = messages.filter(m => m.role === "user").slice(-4).reverse();
   for (const m of userMsgs) {
@@ -177,11 +178,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: { message: "Method not allowed" } });
   }
 
+  // Bắt buộc đăng nhập + trừ 1 lượt chat trong ngày
+  const g = await guard(req, res, "chat");
+  if (!g) return;
+  const fail = async (status, message) => {
+    await refund(g.user.id, "chat");
+    return res.status(status).json({ error: { message } });
+  };
+
   try {
-    let { messages } = req.body;
+    let { messages } = req.body || {};
 
     if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: { message: "Thieu messages" } });
+      return fail(400, "Thieu messages");
     }
 
     messages = applyZenoStyle(messages);
@@ -200,7 +209,7 @@ export default async function handler(req, res) {
     const geminiKeys = (process.env.GEMINI_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
 
     if (groqKeys.length === 0 && geminiKeys.length === 0) {
-      return res.status(500).json({ error: { message: "Chua cau hinh API key nao tren server" } });
+      return fail(500, "Chua cau hinh API key nao tren server");
     }
 
     // ---------- 1. Thu Groq truoc ----------
@@ -215,7 +224,7 @@ export default async function handler(req, res) {
             "Authorization": "Bearer " + chosenKey
           },
           body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
+            model: GROQ_MODEL,
             messages: messages,
             temperature: 0.6
           })
@@ -235,7 +244,7 @@ export default async function handler(req, res) {
 
     // ---------- 2. Groq loi -> chuyen sang Gemini ----------
     if (geminiKeys.length === 0) {
-      return res.status(502).json({ error: { message: "Groq loi: " + groqError + " (chua co GEMINI_API_KEYS de du phong)" } });
+      return fail(502, "Groq loi: " + groqError + " (chua co GEMINI_API_KEYS de du phong)");
     }
 
     const systemText = messages
@@ -251,7 +260,7 @@ export default async function handler(req, res) {
       }));
 
     if (contents.length === 0) {
-      return res.status(400).json({ error: { message: "Khong co tin nhan nguoi dung" } });
+      return fail(400, "Khong co tin nhan nguoi dung");
     }
 
     const body = {
@@ -269,10 +278,10 @@ export default async function handler(req, res) {
     for (const key of shuffled) {
       try {
         const gRes = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + key,
+          "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "x-goog-api-key": key },
             body: JSON.stringify(body)
           }
         );
@@ -297,10 +306,8 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(502).json({
-      error: { message: "Ca Groq va Gemini deu loi. Groq: " + groqError + " | Gemini: " + geminiError }
-    });
+    return fail(502, "Ca Groq va Gemini deu loi. Groq: " + groqError + " | Gemini: " + geminiError);
   } catch (err) {
-    return res.status(500).json({ error: { message: "Loi server: " + err.message } });
+    return fail(500, "Loi server: " + err.message);
   }
-                                   }
+}
