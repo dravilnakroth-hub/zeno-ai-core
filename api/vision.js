@@ -1,73 +1,95 @@
-import { Groq } from '@groq/groq-sdk';
+import { guard, refund, splitKeys } from "./_lib.js";
+
+// Đổi model bằng biến môi trường trên Vercel mà không cần sửa code
+const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+
+const PROMPT = "Mô tả chi tiết những gì có trong ảnh này bằng tiếng Việt, khách quan, ngắn gọn trong khoảng 3-4 câu. Không bình luận, chỉ mô tả.";
+
+async function viaGroq(mime, b64) {
+  const keys = splitKeys(process.env.GROQ_API_KEYS);
+  if (!keys.length) return { skipped: true };
+  const key = keys[Math.floor(Math.random() * keys.length)];
+  try {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({
+        model: GROQ_VISION_MODEL,
+        temperature: 0.2,
+        max_tokens: 400,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: PROMPT },
+            { type: "image_url", image_url: { url: "data:" + mime + ";base64," + b64 } }
+          ]
+        }]
+      })
+    });
+    const d = await r.json();
+    const t = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+    if (r.ok && t) return { text: t };
+    return { error: "Groq: " + ((d && d.error && d.error.message) || ("mã " + r.status)) };
+  } catch (e) {
+    return { error: "Groq: " + e.message };
+  }
+}
+
+async function viaGemini(mime, b64) {
+  const keys = splitKeys(process.env.GEMINI_API_KEYS);
+  if (!keys.length) return { skipped: true };
+  const key = keys[Math.floor(Math.random() * keys.length)];
+  try {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
+        generationConfig: { temperature: 0.2 }
+      })
+    });
+    const d = await r.json();
+    const parts = d && d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts;
+    const t = parts && parts.map(p => p.text || "").join("");
+    if (r.ok && t) return { text: t };
+    return { error: "Gemini: " + ((d && d.error && d.error.message) || ("mã " + r.status)) };
+  } catch (e) {
+    return { error: "Gemini: " + e.message };
+  }
+}
 
 export default async function handler(req, res) {
-  // Chỉ chấp nhận phương thức POST gửi từ app Android lên
   if (req.method !== "POST") {
     return res.status(405).json({ error: { message: "Method not allowed" } });
   }
 
+  const { imageBase64, mimeType } = req.body || {};
+  if (!imageBase64) {
+    return res.status(400).json({ error: { message: "Thieu du lieu anh" } });
+  }
+
+  const g = await guard(req, res, "readImg");
+  if (!g) return;
+  const fail = async (status, message) => {
+    await refund(g.user.id, "readImg");
+    return res.status(status).json({ error: { message } });
+  };
+
   try {
-    const { imageBase64, mimeType } = req.body;
+    const mime = mimeType || "image/jpeg";
+    const problems = [];
 
-    // Kiểm tra dữ liệu đầu vào từ điện thoại gửi lên
-    if (!imageBase64) {
-      return res.status(400).json({ error: { message: "Thieu du lieu anh" } });
-    }
+    const a = await viaGroq(mime, imageBase64);
+    if (a.text) return res.status(200).json({ description: a.text });
+    if (a.error) problems.push(a.error);
 
-    // 1. Thuật toán gom và chọn ngẫu nhiên Groq API Key để chia tải (Load Balancing)
-    const allKeys = (process.env.GROQ_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
+    const b = await viaGemini(mime, imageBase64);
+    if (b.text) return res.status(200).json({ description: b.text });
+    if (b.error) problems.push(b.error);
 
-    if (allKeys.length === 0) {
-      return res.status(500).json({ error: { message: "Chua cau hinh GROQ_API_KEYS tren server Vercel" } });
-    }
-
-    // Tự động xoay tua phím Key ngẫu nhiên để tối ưu hóa hạn mức RPM/TPM
-    const chosenKey = allKeys[Math.floor(Math.random() * allKeys.length)];
-
-    // 2. Khởi tạo cấu hình kết nối độc lập với hệ thống Groq
-    const groq = new Groq({ apiKey: chosenKey });
-
-    // Chuẩn hóa định dạng chuỗi ảnh Data URI cho mô hình Vision (Mặc định là image/jpeg nếu app không truyền sang)
-    const currentMimeType = mimeType || "image/jpeg";
-    const imageUrlData = `data:${currentMimeType};base64,${imageBase64}`;
-
-    // 3. Tiến hành gọi mô hình Llama Vision phân tích xử lý đa phương thức
-    const groqResponse = await groq.chat.completions.create({
-      model: "llama-3.2-11b-vision-preview", // Khai báo model Vision tối ưu và siêu tốc của Groq
-      messages: [
-        {
-          role: "user",
-          content: [
-            { 
-              type: "text", 
-              text: "Mo ta chi tiet nhung gi co trong anh nay bang tieng Viet, khach quan, ngan gon trong khoang 3-4 cau. Khong binh luan, chi mo ta." 
-            },
-            { 
-              type: "image_url", 
-              image_url: { url: imageUrlData } 
-            }
-          ]
-        }
-      ],
-      temperature: 0.2, // Giữ độ chính xác cao khi bóc tách ngữ cảnh vật thể
-      max_tokens: 300   // Giới hạn số lượng chữ trả về để tối ưu tài nguyên mạng
-    });
-
-    // 4. Bóc tách kết quả văn bản trả về từ bộ não AI của Groq
-    const description = groqResponse.choices && 
-                        groqResponse.choices[0] && 
-                        groqResponse.choices[0].message && 
-                        groqResponse.choices[0].message.content;
-
-    if (!description) {
-      return res.status(500).json({ error: { message: "Khong doc duoc mo ta anh tu he thong Groq" } });
-    }
-
-    // Trả kết quả chữ thuần túy về cho ứng dụng Zeno AI trên Redmi K60 hiển thị
-    return res.status(200).json({ description: description });
-
+    return fail(500, problems.join(" || ") || "Chua cau hinh GROQ_API_KEYS hoac GEMINI_API_KEYS");
   } catch (err) {
-    // Xử lý lỗi hệ thống ngầm hoặc lỗi phản hồi từ API trung gian
-    return res.status(500).json({ error: { message: "Loi server Casy: " + err.message } });
+    return fail(500, "Loi server: " + err.message);
   }
 }
