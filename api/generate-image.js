@@ -1,62 +1,77 @@
 const MODELS = [
-  "gemini-4-argon",
   "gemini-3.1-flash-lite-image",
-  "gemini-3.1-flash-image"
+  "gemini-3.1-flash-image",
+  "gemini-2.5-flash-image"
 ];
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-  const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message is required" });
-
-  const apiKey = process.env.GEMINI_API_KEYS;
-  if (!apiKey) {
-    return res.status(200).json({ response: "Thiếu GEMINI_API_KEYS trong mục Environment Variables trên Vercel rồi ông ơi!" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: { message: "Method not allowed" } });
   }
 
-  for (const model of MODELS) {
-    try {
-      const url = `https://googleapis.com{model}:generateContent?key=${apiKey}`;
-      
-      const payload = {
-        contents: [{
-          parts: [{
-            text: `Generate a beautiful high-quality image based on this description: ${message}. Artistic style, highly detailed.`
-          }]
-        }],
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
-      };
+  try {
+    const { prompt } = req.body;
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const textResponse = data.candidates[0].content.parts[0].text;
-        return res.status(200).json({
-          response: "Tao vẽ xong cho mày rồi nhé! Xem mượt không nè ông.",
-          image: textResponse.includes("base64") ? textResponse : `data:image/jpeg;base64,${textResponse}`
-        });
-      }
-    } catch (err) {
-      console.log(`Model ${model} tạch, tự động nhảy sang con tiếp theo...`);
-      continue;
+    if (!prompt) {
+      return res.status(400).json({ error: { message: "Thieu prompt" } });
     }
-  }
 
-  return res.status(200).json({
-    response: "Tao định vẽ cho mày rồi mà tất cả các model tạo ảnh của Google (kể cả hàng sơ cua) đều đang bị quá tải hoặc hết sạch hạn mức Free hôm nay rồi. Tí nữa hoặc ngày mai thử lại xem sao nhé ông!"
-  });
+    const allKeys = (process.env.GEMINI_API_KEYS || "").split(/[\s,]+/).map(k => k.trim()).filter(Boolean);
+
+    if (allKeys.length === 0) {
+      return res.status(500).json({ error: { message: "Chua cau hinh GEMINI_API_KEYS tren server" } });
+    }
+
+    const key = allKeys[Math.floor(Math.random() * allKeys.length)];
+    const errors = [];
+
+    // thu lan luot tung model, model nao ra anh thi dung
+    for (const model of MODELS) {
+      try {
+        const geminiResponse = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+            })
+          }
+        );
+
+        const data = await geminiResponse.json();
+
+        if (!geminiResponse.ok) {
+          errors.push(model + ": " + ((data.error && data.error.message) ? data.error.message : geminiResponse.status));
+          continue;
+        }
+
+        const parts = data.candidates &&
+          data.candidates[0] &&
+          data.candidates[0].content &&
+          data.candidates[0].content.parts;
+
+        if (parts) {
+          for (const part of parts) {
+            const inline = part.inlineData || part.inline_data;
+            if (inline && inline.data) {
+              return res.status(200).json({
+                imageBase64: inline.data,
+                mimeType: inline.mimeType || inline.mime_type || "image/png"
+              });
+            }
+          }
+        }
+        errors.push(model + ": khong tra ve anh");
+      } catch (e) {
+        errors.push(model + ": " + e.message);
+      }
+    }
+
+    return res.status(500).json({ error: { message: errors.join(" | ") } });
+
+  } catch (err) {
+    return res.status(500).json({ error: { message: "Loi server: " + err.message } });
+  }
 }
