@@ -1,3 +1,5 @@
+import { guard, refund } from "./_lib.js";
+
 // Tạo ảnh: ưu tiên Cloudflare Workers AI (FLUX, có gói miễn phí), dự phòng Gemini.
 const GEMINI_MODELS = [
   "gemini-3.1-flash-lite-image",
@@ -19,7 +21,7 @@ async function toEnglishPrompt(prompt) {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b",
+        model: process.env.GROQ_CHAT_MODEL || "openai/gpt-oss-120b",
         temperature: 0.4,
         messages: [
           { role: "system", content: "Convert the user's image request (any language) into one concise, vivid English image-generation prompt (max 60 words). Remove phrases like 'draw me' or 'make an image of'. Output ONLY the prompt." },
@@ -67,10 +69,10 @@ async function viaGemini(prompt) {
   for (const model of GEMINI_MODELS) {
     try {
       const r = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key,
+        "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
@@ -80,10 +82,8 @@ async function viaGemini(prompt) {
       const data = await r.json();
       if (!r.ok) {
         const m = (data.error && data.error.message) ? data.error.message : String(r.status);
-        // chỉ lấy câu đầu cho gọn
         errors.push(model + ": " + m.split("\n")[0].slice(0, 120));
-        // hết hạn mức thì các model khác cũng hết, dừng sớm
-        if (r.status === 429) break;
+        if (r.status === 429) break; // hết hạn mức thì các model khác cũng hết
         continue;
       }
       const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
@@ -108,16 +108,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: { message: "Method not allowed" } });
   }
 
-  try {
-    const { prompt } = req.body || {};
-    if (!prompt) {
-      return res.status(400).json({ error: { message: "Thieu prompt" } });
-    }
+  const raw = req.body && req.body.prompt;
+  if (!raw) {
+    return res.status(400).json({ error: { message: "Thieu prompt" } });
+  }
+  const prompt = String(raw).slice(0, 1000);
 
+  const g = await guard(req, res, "genImg");
+  if (!g) return;
+  const fail = async (status, message) => {
+    await refund(g.user.id, "genImg");
+    return res.status(status).json({ error: { message } });
+  };
+
+  try {
     const hasCloudflare = !!(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
     const hasGemini = splitKeys(process.env.GEMINI_API_KEYS).length > 0;
     if (!hasCloudflare && !hasGemini) {
-      return res.status(500).json({ error: { message: "Chưa cấu hình dịch vụ tạo ảnh trên server (cần CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN hoặc GEMINI_API_KEYS)" } });
+      return fail(500, "Chưa cấu hình dịch vụ tạo ảnh trên server (cần CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN hoặc GEMINI_API_KEYS)");
     }
 
     const problems = [];
@@ -130,13 +138,13 @@ export default async function handler(req, res) {
     }
 
     if (hasGemini) {
-      const g = await viaGemini(prompt);
-      if (g.imageBase64) return res.status(200).json({ imageBase64: g.imageBase64, mimeType: g.mimeType });
-      if (g.error) problems.push(g.error);
+      const gm = await viaGemini(prompt);
+      if (gm.imageBase64) return res.status(200).json({ imageBase64: gm.imageBase64, mimeType: gm.mimeType });
+      if (gm.error) problems.push(gm.error);
     }
 
-    return res.status(500).json({ error: { message: problems.join(" || ") || "Không tạo được ảnh" } });
+    return fail(500, problems.join(" || ") || "Không tạo được ảnh");
   } catch (err) {
-    return res.status(500).json({ error: { message: "Loi server: " + err.message } });
+    return fail(500, "Loi server: " + err.message);
   }
 }
