@@ -1033,6 +1033,7 @@
       <div class="settings-group">
         <div class="settings-label">Gói của mày<span class="plan-chip" id="settings-plan-chip">Free</span></div>
         <div class="settings-options">
+          <div class="settings-note" id="settings-usage" style="font-size:12.5px;color:var(--text-muted);padding:2px 4px 8px;"></div>
           <button class="settings-option" onclick="closeSettings();openPlans()">Xem các gói Plus và Pro</button>
           <button class="settings-option" onclick="closeSettings();openGallery()">Mở thư viện ảnh</button>
         </div>
@@ -1083,6 +1084,7 @@
       <div class="plans-sub">Zeno luôn có bản miễn phí. Nâng cấp khi mày muốn thêm chuyên gia, nhiều ảnh hơn và đọc được video.</div>
       <div class="plans-grid" id="plans-body"></div>
       <div class="plans-notice" id="plans-notice"></div>
+      <div id="plans-test" style="display:none;margin-top:14px;"></div>
       <div class="plans-note">Giá và giới hạn là bản thiết kế, có thể thay đổi trước khi mở bán.</div>
     </div>
   </div>
@@ -1306,6 +1308,13 @@ const EN_MAP = {
   'Đóng': 'Close',
   'Chưa có ảnh nào. Nhờ Zeno vẽ thử đi, ví dụ: "vẽ con mèo".': 'No images yet. Ask Zeno to draw something, e.g. "draw a cat".',
   'Xoá ảnh này khỏi thư viện?': 'Delete this image from the library?',
+  'Hôm nay': 'Today',
+  'Tạo ảnh': 'Image creation',
+  'Đọc ảnh': 'Image reading',
+  'Xem các gói': 'See plans',
+  'Chế độ thử (chỉ để test, sẽ tắt khi mở bán):': 'Test mode (for testing only, will be off at launch):',
+  'Thử gói': 'Try plan',
+  'Đặt lại lượt hôm nay': "Reset today's usage",
   'Zeno Gốc': 'Zeno Core',
   'Tính cách gốc, tám chuyện, cà khịa nhẹ': 'The original: chatty, a little cheeky',
   'Tư vấn content, quảng cáo, xây thương hiệu': 'Content, ads and branding advice',
@@ -1326,7 +1335,7 @@ function tr(vi){
 function applyLanguage(){
   const en = getLang() === 'en';
   document.documentElement.lang = en ? 'en' : 'vi';
-  const skip = '#messages,#chatlist-list,#proj-bar,#proj-actions,#rp-list,#store-list,#move-list,#account-email,#plans-body,#plans-notice,#gal-grid,#gal-view-prompt,script,style';
+  const skip = '#messages,#chatlist-list,#proj-bar,#proj-actions,#rp-list,#store-list,#move-list,#account-email,#plans-body,#plans-notice,#plans-test,#settings-usage,#gal-grid,#gal-view-prompt,script,style';
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode(n){
@@ -1605,6 +1614,7 @@ const PERSONAS = [
 ];
 
 function getInstalledPersonas(){
+  if(!planLimits().experts) return ['default'];
   const raw = localStorage.getItem('zeno_installed');
   if(!raw) return ['default'];
   try{
@@ -1616,6 +1626,7 @@ function getInstalledPersonas(){
 }
 
 function togglePersonaInstall(id){
+  if(!planLimits().experts){ closeStore(); openPlansWithNotice(planLockMsg('experts')); return; }
   let installed = getInstalledPersonas();
   if(installed.includes(id)){
     installed = installed.filter(x => x !== id);
@@ -1760,6 +1771,8 @@ function triggerVideo(){
 function handleImageSelect(event){
   const file = event.target.files[0];
   if(!file) return;
+  if(quotaLeft('readImg') <= 0){ event.target.value=''; planAddBubble(planLockMsg('readImg')); return; }
+  quotaConsume('readImg');
 
   const reader = new FileReader();
   reader.onload = async function(e){
@@ -1833,6 +1846,7 @@ const MAX_VIDEO_BYTES = 3 * 1024 * 1024; // ~3MB, giới hạn do Vercel free ti
 function handleVideoSelect(event){
   const file = event.target.files[0];
   if(!file) return;
+  if(!planLimits().video){ event.target.value=''; planAddBubble(planLockMsg('video')); return; }
 
   const lang = localStorage.getItem('zeno_lang') || 'vi';
   const messages = document.getElementById('messages');
@@ -1936,8 +1950,10 @@ async function sendMessage(){
 
   if(detectImageGenIntent(text)){
     const lang = localStorage.getItem('zeno_lang') || 'vi';
+    if(quotaLeft('genImg') <= 0){ typing.remove(); planAddBubble(planLockMsg('genImg')); return; }
     try{
       const imgData = await generateZenoImage(text);
+      quotaConsume('genImg');
       typing.remove();
       const caption = lang === 'en' ? "Here you go, fresh off the (digital) easel 🎨" : "Đây, tao vẽ xong rồi nè 🎨";
       const botTime = getTimeStr();
@@ -2173,6 +2189,7 @@ function selectProject(id){
 }
 
 function openProjectEditor(id){
+  if(!id && Object.keys(getProjects()).length >= planLimits().projects){ openPlansWithNotice(planLockMsg('projects')); return; }
   editingProjectId = id;
   const p = id ? getProjects()[id] : null;
   document.getElementById('proj-modal-title').textContent = p ? tr('Sửa dự án') : tr('Dự án mới');
@@ -2192,6 +2209,7 @@ function saveProject(){
   const err = document.getElementById('proj-error');
   if(!name){ err.textContent = tr('Đặt tên cho dự án đã'); return; }
   const projects = getProjects();
+  if(!editingProjectId && Object.keys(projects).length >= planLimits().projects){ err.textContent = planLockMsg('projects'); return; }
   const id = editingProjectId || ('proj_' + Date.now());
   projects[id] = { id: id, name: name, instructions: instr, updatedAt: Date.now() };
   saveProjects(projects);
@@ -2305,6 +2323,7 @@ function planName(id){
 function updatePlanChip(){
   const el = document.getElementById('settings-plan-chip');
   if(el) el.textContent = planName(getPlan());
+  try{ updateUsageLine(); }catch(e){}
 }
 
 function renderPlans(){
@@ -2326,6 +2345,13 @@ function renderPlans(){
         : '<button class="plan-cta" onclick="chooseDesignPlan(\''+p.id+'\')">'+tr('Nâng cấp')+'</button>') +
     '</div>';
   }).join('');
+  const t = document.getElementById('plans-test');
+  if(t){
+    t.style.display = PLAN_TEST_MODE ? 'block' : 'none';
+    t.innerHTML = PLAN_TEST_MODE ? ('<div class="plans-note">'+tr('Chế độ thử (chỉ để test, sẽ tắt khi mở bán):')+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+      ['free','plus','pro'].map(id => '<button class="gal-btn" onclick="setTestPlan(\''+id+'\')">'+tr('Thử gói')+' '+planName(id)+(getPlan()===id?' ✓':'')+'</button>').join('') +
+      '<button class="gal-btn" onclick="try{localStorage.removeItem(\'zeno_usage\')}catch(e){};updateUsageLine()">'+tr('Đặt lại lượt hôm nay')+'</button></div>') : '';
+  }
 }
 
 function openPlans(){
@@ -2411,6 +2437,72 @@ async function deleteGalleryImage(){
   galleryCurrentId = null;
   closeGalleryView();
   setTimeout(renderGallery, 80);
+}
+
+// ===== Quyền của từng gói =====
+// Đổi số ở đây là đổi giới hạn. Infinity = không giới hạn.
+const PLAN_LIMITS = {
+  free: { readImg:5,        genImg:3,   projects:2,        experts:false, video:false },
+  plus: { readImg:50,       genImg:30,  projects:10,       experts:true,  video:false },
+  pro:  { readImg:Infinity, genImg:100, projects:Infinity, experts:true,  video:true  }
+};
+// true = hiện nút "Thử gói" để mày tự test các gói. NHỚ ĐỔI THÀNH false trước khi mở bán thật.
+const PLAN_TEST_MODE = true;
+
+function planLimits(){ return PLAN_LIMITS[getPlan()] || PLAN_LIMITS.free; }
+function todayKey(){ const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function usageOwner(){ return (typeof currentUserId !== 'undefined' && currentUserId) ? currentUserId : 'guest'; }
+function getUsage(){
+  try{
+    const u = JSON.parse(localStorage.getItem('zeno_usage') || '{}');
+    if(u && u.date === todayKey() && u.owner === usageOwner()) return u;
+  }catch(e){}
+  return {date:todayKey(), owner:usageOwner(), readImg:0, genImg:0};
+}
+function quotaUsed(kind){ return getUsage()[kind] || 0; }
+function quotaLeft(kind){ return Math.max(0, planLimits()[kind] - quotaUsed(kind)); }
+function quotaConsume(kind){
+  const u = getUsage(); u[kind] = (u[kind] || 0) + 1;
+  try{ localStorage.setItem('zeno_usage', JSON.stringify(u)); }catch(e){}
+  updateUsageLine();
+}
+function fmtLimit(n){ return n === Infinity ? '∞' : n; }
+function updateUsageLine(){
+  const el = document.getElementById('settings-usage');
+  if(!el) return;
+  const L = planLimits();
+  el.textContent = tr('Hôm nay')+': '+tr('Tạo ảnh')+' '+quotaUsed('genImg')+'/'+fmtLimit(L.genImg)+' · '+tr('Đọc ảnh')+' '+quotaUsed('readImg')+'/'+fmtLimit(L.readImg);
+}
+function planAddBubble(msg){
+  const messages = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = '<div class="bubble">'+escapeHtml(msg)+'<br><button class="gal-btn" style="margin-top:8px;" onclick="openPlans()">'+tr('Xem các gói')+'</button><span class="msg-time">'+getTimeStr()+'</span></div>';
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+function planLockMsg(kind){
+  const L = planLimits();
+  const lang = localStorage.getItem('zeno_lang') || 'vi';
+  const name = planName(getPlan());
+  const m = {
+    genImg: lang==='en' ? "You've used all "+fmtLimit(L.genImg)+" image creations for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay mày dùng hết "+fmtLimit(L.genImg)+" lượt tạo ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
+    readImg: lang==='en' ? "You've used all "+fmtLimit(L.readImg)+" image readings for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay mày dùng hết "+fmtLimit(L.readImg)+" lượt đọc ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
+    video: lang==='en' ? "Video reading is only on Zeno Pro." : "Đọc video chỉ có ở gói Zeno Pro.",
+    experts: lang==='en' ? "Experts are unlocked with Zeno Plus or Pro." : "Chuyên gia được mở khoá ở gói Zeno Plus hoặc Pro.",
+    projects: lang==='en' ? "Your "+name+" plan allows "+fmtLimit(L.projects)+" Projects. Upgrade to create more." : "Gói "+name+" của mày chỉ có "+fmtLimit(L.projects)+" Dự án. Nâng cấp để tạo thêm."
+  };
+  return m[kind];
+}
+function openPlansWithNotice(msg){
+  openPlans();
+  const n = document.getElementById('plans-notice');
+  n.textContent = msg; n.classList.add('show');
+}
+function setTestPlan(id){
+  try{ localStorage.setItem('zeno_plan', id); }catch(e){}
+  updatePlanChip(); updateUsageLine(); renderPlans();
+  try{ renderStoreList(); renderRightPanel(); }catch(e){}
 }
 
 function startNewConversation(){
