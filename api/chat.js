@@ -13,14 +13,21 @@ function hasAny(text, words) {
 }
 
 // Chọn cách xưng hô theo cách người dùng nói, mặc định lịch sự: tớ - cậu
+//  - người dùng xưng "t" / "tao" / "mày"  -> tao - mày
+//  - người dùng xưng "tôi" / "bạn"        -> tôi - bạn
+//  - người dùng xưng "ông"                -> tôi - ông
+//  - người dùng xưng "tớ" / "cậu"         -> tớ - cậu
 function pickPronoun(messages) {
   const userMsgs = messages.filter(m => m.role === "user").slice(-4).reverse();
   for (const m of userMsgs) {
-    const t = String(m.content || "").toLowerCase();
-    if (hasAny(t, ["mày", "tao"])) {
+    const t = String(m.content || "").toLowerCase().replace(/bạn bè/g, " ");
+    if (hasAny(t, ["mày", "tao", "t"])) {
       return "Người dùng đang nói chuyện thân mật, suồng sã. Hãy xưng 'tao' và gọi người dùng là 'mày'.";
     }
-    if (hasAny(t, ["ông", "tôi"])) {
+    if (hasAny(t, ["tôi", "bạn"])) {
+      return "Người dùng nói chuyện theo kiểu bạn bè lịch sự. Hãy xưng 'tôi' và gọi người dùng là 'bạn'.";
+    }
+    if (hasAny(t, ["ông"])) {
       return "Người dùng thích phong cách chiến hữu bè bạn. Hãy xưng 'tôi' và gọi người dùng là 'ông'.";
     }
     if (hasAny(t, ["cậu", "tớ"])) {
@@ -57,7 +64,10 @@ function applyZenoStyle(messages) {
   const extra =
     (pickRole(messages) ? pickRole(messages) + " " : "") +
     "LƯU Ý VỀ XƯNG HÔ: " + pickPronoun(messages) +
-    " Hãy dùng đúng cặp đại từ đó xuyên suốt câu trả lời, không được nhầm lẫn.";
+    " Hãy dùng đúng cặp đại từ đó xuyên suốt câu trả lời, không được nhầm lẫn." +
+    " QUY TẮC TRẢ LỜI: Nếu không chắc về điều gì thì nói thẳng là không chắc, tuyệt đối không bịa số liệu, giá cả hay sự kiện." +
+    " Không đoán ý hay gán mục đích cho người dùng; thiếu thông tin thì hỏi lại ngắn gọn." +
+    " Khi cần so sánh nhiều lựa chọn thì dùng bảng Markdown gọn gàng, còn lại nói chuyện bình thường và ngắn gọn.";
 
   const out = messages.map(m => ({ ...m }));
   const idx = out.findIndex(m => m.role === "system");
@@ -104,7 +114,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             model: "openai/gpt-oss-120b",
             messages: messages,
-            temperature: 0.9
+            temperature: 0.6
           })
         });
 
@@ -143,7 +153,7 @@ export default async function handler(req, res) {
 
     const body = {
       contents: contents,
-      generationConfig: { temperature: 0.9 }
+      generationConfig: { temperature: 0.6 }
     };
     if (systemText) {
       body.systemInstruction = { parts: [{ text: systemText }] };
