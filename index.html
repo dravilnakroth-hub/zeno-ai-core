@@ -1668,7 +1668,18 @@ function detectImageGenIntent(text){
       || /\b(draw|paint)\s+(me|a|an|the)\b/.test(lower);
 }
 
-// Đọc JSON an toàn: server lỗi trả chữ thường (vd "A server error occurred") thì báo lỗi dễ hiểu thay vì vỡ
+async function authHeaders(){
+  const h = { "Content-Type": "application/json" };
+  try{
+    if(sb){
+      const s = await sb.auth.getSession();
+      const t = s && s.data && s.data.session && s.data.session.access_token;
+      if(t) h["Authorization"] = "Bearer " + t;
+    }
+  }catch(e){}
+  return h;
+}
+  // Đọc JSON an toàn: server lỗi trả chữ thường (vd "A server error occurred") thì báo lỗi dễ hiểu thay vì vỡ
 async function safeJson(res){
   const raw = await res.text();
   try{
@@ -1686,7 +1697,7 @@ async function safeJson(res){
 async function generateZenoImage(prompt){
   const res = await fetch("/api/generate-image", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({ prompt: prompt })
   });
   const data = await safeJson(res);
@@ -1735,7 +1746,7 @@ async function askZeno(text){
   chatHistory.push({role:"user", content: text});
   const response = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify({ messages: chatHistory })
   });
   const data = await safeJson(response);
@@ -1800,7 +1811,7 @@ function handleImageSelect(event){
     try{
       const visionRes = await fetch("/api/vision", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ imageBase64: base64Data, mimeType: mimeType })
       });
       const visionData = await safeJson(visionRes);
@@ -1886,7 +1897,7 @@ function handleVideoSelect(event){
     try{
       const videoRes = await fetch("/api/video", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ videoBase64: base64Data, mimeType: mimeType })
       });
       const videoData = await safeJson(videoRes);
