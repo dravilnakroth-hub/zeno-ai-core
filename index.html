@@ -2318,8 +2318,30 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
+const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
+function getPlanExpiry(){
+  try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
+}
 function getPlan(){
-  try{ const v = localStorage.getItem('zeno_plan'); return (v === 'plus' || v === 'pro') ? v : 'free'; }catch(e){ return 'free'; }
+  try{
+    const v = localStorage.getItem('zeno_plan');
+    if(v !== 'plus' && v !== 'pro') return 'free';
+    // hết hạn (hoặc không có ngày hết hạn) thì về Free
+    if(getPlanExpiry() < Date.now()){
+      localStorage.removeItem('zeno_plan'); localStorage.removeItem('zeno_plan_expires');
+      return 'free';
+    }
+    return v;
+  }catch(e){ return 'free'; }
+}
+function planExpiryText(){
+  const id = getPlan();
+  if(id === 'free') return '';
+  const d = new Date(getPlanExpiry());
+  const left = Math.max(1, Math.ceil((getPlanExpiry() - Date.now()) / 86400000));
+  const lang = localStorage.getItem('zeno_lang') || 'vi';
+  const date = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+  return lang === 'en' ? ' (expires '+date+', '+left+' days left)' : ' (hết hạn '+date+', còn '+left+' ngày)';
 }
 function planName(id){
   const p = PLANS.find(x => x.id === id);
@@ -2327,7 +2349,7 @@ function planName(id){
 }
 function updatePlanChip(){
   const el = document.getElementById('settings-plan-chip');
-  if(el) el.textContent = planName(getPlan());
+  if(el) el.textContent = planName(getPlan()) + planExpiryText();
   try{ updateUsageLine(); }catch(e){}
 }
 
@@ -2505,7 +2527,10 @@ function openPlansWithNotice(msg){
   n.textContent = msg; n.classList.add('show');
 }
 function setTestPlan(id){
-  try{ localStorage.setItem('zeno_plan', id); }catch(e){}
+  try{
+    if(id === 'free'){ localStorage.removeItem('zeno_plan'); localStorage.removeItem('zeno_plan_expires'); }
+    else { localStorage.setItem('zeno_plan', id); localStorage.setItem('zeno_plan_expires', String(Date.now() + TRIAL_DAYS*86400000)); }
+  }catch(e){}
   updatePlanChip(); updateUsageLine(); renderPlans();
   try{ renderStoreList(); renderRightPanel(); }catch(e){}
 }
