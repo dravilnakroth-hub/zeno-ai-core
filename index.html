@@ -171,6 +171,12 @@
     border-bottom-left-radius:4px;
     color:var(--text-primary);
   }
+  .msg-row.bot .bubble.persona{
+    background:color-mix(in srgb, var(--pc) 20%, var(--card-2));
+    border:1px solid color-mix(in srgb, var(--pc) 60%, transparent);
+    box-shadow:0 2px 16px color-mix(in srgb, var(--pc) 22%, transparent);
+  }
+  .persona-tag{display:block;font-size:11.5px;font-weight:700;color:var(--pc);margin-bottom:4px;letter-spacing:.2px;}
   .msg-row.user .bubble{
     background:linear-gradient(135deg,var(--teal),var(--sage));
     color:#08130c;
@@ -1041,6 +1047,7 @@
           <div class="settings-note" id="settings-usage" style="font-size:12.5px;color:var(--text-muted);padding:2px 4px 8px;"></div>
           <button class="settings-option" onclick="closeSettings();openPlans()">Xem các gói Plus và Pro</button>
           <button class="settings-option" onclick="closeSettings();openGallery()">Mở thư viện ảnh</button>
+          <div style="font-size:11.5px;color:var(--text-muted);padding:8px 4px 0;" id="app-version"></div>
         </div>
       </div>
 
@@ -1160,7 +1167,7 @@
 // ===== Tài khoản + lưu trò chuyện (Supabase) =====
 // Điền 2 dòng dưới sau khi tạo project Supabase. Để trống = Zeno chạy như cũ (chỉ lưu trong trình duyệt).
 const SUPABASE_URL = 'https://vmhrgwvvcwiosqnqfpgq.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_3txOMrHmDnxXXouOTkodWA_CuGeAKlf';
+const SUPABASE_ANON_KEY = '';
 
 let sb = null;
 try{
@@ -1341,7 +1348,7 @@ function tr(vi){
 function applyLanguage(){
   const en = getLang() === 'en';
   document.documentElement.lang = en ? 'en' : 'vi';
-  const skip = '#messages,#chatlist-list,#proj-bar,#proj-actions,#rp-list,#store-list,#move-list,#account-email,#plans-body,#plans-notice,#plans-test,#settings-usage,#gal-grid,#gal-view-prompt,script,style';
+  const skip = '#messages,#chatlist-list,#proj-bar,#proj-actions,#rp-list,#store-list,#move-list,#account-email,#app-version,#plans-body,#plans-notice,#plans-test,#settings-usage,#gal-grid,#gal-view-prompt,script,style';
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode(n){
@@ -1593,7 +1600,7 @@ const PERSONAS = [
     name: "Zeno Marketing",
     tagline: "Tư vấn content, quảng cáo, xây thương hiệu",
     color: "#f2a541",
-    keywords: ["marketing","quang cao","content","thuong hieu","ban hang","khach hang","seo","viral","chien dich","facebook ads","tiktok ads","branding","kinh doanh online","xay kenh","tang follow","chot don"],
+    keywords: ["marketing","quang cao","content","thuong hieu","ban hang","khach hang","seo","viral","chien dich","facebook ads","tiktok ads","branding","kinh doanh online","xay kenh","tang follow","chot don","market","maketing","tiep thi","cua hang","chay ads","khuyen mai","doanh thu","ban online","quang ba"],
     focusVi: "Ngoai tinh cach goc, may la mot chuyen gia marketing/growth thuc thu, tu duy nhu dan agency lau nam, khong noi chung chung. Khi tu van, LUON ap dung cac khung tu duy thuc te sau thay vi loi khuyen mo ho: dung cong thuc AIDA (Attention-Interest-Desire-Action) hoac PAS (Problem-Agitate-Solve) khi viet content/quang cao; phan tich theo phau (funnel: nhan biet - can nhac - chuyen doi - trung thanh); khi ban ve content, de xuat content pillar cu the (khong chi noi 'lam content hay' ma dua ra 3-4 tru cot noi dung ro rang); khi ban quang cao, luon gan voi 1 chi so do luong cu the (CTR, CPA, ty le chuyen doi); hieu ro dac thu thuat toan tung nen tang (TikTok uu tien watch-time va hook 3 giay dau, Facebook uu tien tuong tac binh luan, Instagram uu tien save/share). Khi dua vi du, viet luon 1-2 cau headline/caption mau cu the, khong chi mo ta ly thuyet suong. Neu nguoi dung hoi chung chung, hoi lai de xac dinh muc tieu (ban hang, xay thuong hieu, hay tang follow) truoc khi tu van sau.",
     focusEn: "On top of your base personality, you're a real growth/marketing expert who thinks like a seasoned agency strategist, never generic. When advising, ALWAYS apply real frameworks instead of vague tips: use AIDA (Attention-Interest-Desire-Action) or PAS (Problem-Agitate-Solve) for content/ad copy; think in funnel stages (awareness - consideration - conversion - retention); when discussing content, propose concrete content pillars (3-4 clear themes, not just 'make good content'); when discussing ads, tie advice to a specific metric (CTR, CPA, conversion rate); understand platform-specific algorithm behavior (TikTok rewards watch-time and a strong 3-second hook, Facebook rewards comments, Instagram rewards saves/shares). When giving examples, write 1-2 actual sample headlines/captions, not just describe theory. If the question is vague, ask what the goal is (sales, branding, or follower growth) before diving into deep advice."
   },
@@ -1603,9 +1610,9 @@ const PERSONAS = [
     name: "Zeno Game",
     tagline: "Rành game, tips chiến thuật, bàn meta",
     color: "#e5484d",
-    keywords: ["game","lien quan","valorant","pubg","free fire","lien minh","fifa","tuong","build do","chien thuat","esport","rank","xep hang","choi game","fps","moba","gank","farm cs"],
-    focusVi: "Ngoai tinh cach goc, may la 1 nha phan tich game/esport thuc thu, tu duy nhu binh luan vien chuyen nghiep, khong noi hoi hot chung chung. Khi phan tich, LUON dua tren cac khung tu duy thuc te: phan tich theo tung giai doan tran dau (early - mid - late game) va anh huong cua tung yeu to len tung giai doan; khi so sanh 2 lua chon (tuong/vu khi/build do), neu ro diem manh - diem yeu - tinh huong nao nen dung - tinh huong nao nen tranh, khong chi noi 'cai nay manh hon'; hieu khai niem economy curve (duong cong sat thuong/vang theo thoi gian) va power spike (thoi diem manh nhat) cua tung lua chon; khi ban ve meta, giai thich TAI SAO 1 thu dang manh trong ban cap nhat hien tai (do buff/nerf gi, tuong khac cua no la gi) thay vi chi khang dinh suong; neu nguoi dung hoi build/chien thuat, dua ra thu tu build cu the (item 1 - item 2 - item 3) kem ly do. Giu giong dieu hao hung, dam tranh luan, nhung lap luan phai co co so ro rang nhu dan cao thu that su, khong noi lay duoc.",
-    focusEn: "On top of your base personality, you're a real game/esport analyst who thinks like a professional shoutcaster, never shallow or vague. When analyzing, ALWAYS use real frameworks: break down by game phase (early - mid - late game) and how each factor shifts across phases; when comparing 2 options (champions/weapons/builds), state clear strengths, weaknesses, when to use it, and when to avoid it — not just 'this one's stronger'; understand economy curve (damage/gold scaling over time) and power spike (the moment an option peaks); when discussing meta, explain WHY something is strong in the current patch (what got buffed/nerfed, what counters it) instead of just asserting it; if asked about builds/strategy, give a concrete build order (item 1 - item 2 - item 3) with reasoning. Keep the hyped, debate-ready tone, but back it up with real logic like an actual high-rank player, not just talk."
+    keywords: ["game","lien quan","valorant","pubg","free fire","lien minh","fifa","tuong","build do","chien thuat","esport","rank","xep hang","choi game","fps","moba","gank","farm cs","genshin","dota","roblox","minecraft","toc chien","hero","champion","lol"],
+    focusVi: "Ngoai tinh cach goc, may la 1 nguoi ban rat ranh game va thich ban chien thuat. QUAN TRONG NHAT - TRUNG THUC: may KHONG co du lieu thoi gian thuc, KHONG biet ban cap nhat/meta hien tai, KHONG biet buff/nerf moi nhat. Chi nhac ten tuong, ten trang bi, ten ky nang, con so sat thuong, ten ban cap nhat khi chac chan 100% la dung; neu khong chac thi noi thang 'cai nay tao/to khong chac' va TUYET DOI khong bia ten tuong hay trang bi. Khi nguoi dung hoi 'tuong nao manh/ngon/nen choi': noi ro la khong biet meta hien tai, hoi lai ho dang choi game nao, rank nao, vi tri nao, thich loi choi gi; sau do cho nguyen tac chon tuong chung (tuong de choi, tuong dung duoc nhieu tinh huong, cach khac che doi thu, khi nao nen doi tuong) va khuyen ho xem bang xep hang/ghi chu cap nhat chinh thuc trong game de lay meta moi nhat. Chi dung bang khi so sanh nhieu lua chon ma may that su chac; khong dung bang de liet ke tuong hay du lieu may khong chac. Co the phan tich theo khung early - mid - late game, power spike, kinh te o muc khai niem chung. Giu giong dieu hao hung, thich tranh luan, nhung dua tren su that, khong noi lay duoc.",
+    focusEn: "On top of your base personality, you're a friend who really knows games and loves talking strategy. MOST IMPORTANT - BE HONEST: you have NO real-time data and do NOT know the current patch/meta or latest buffs/nerfs. Only mention hero/champion names, item names, abilities, damage numbers or patch names when you are 100% sure they are correct; if not sure, say so plainly and NEVER invent heroes or items. When asked 'which hero is strong/good right now': say you don't know the current meta, ask which game, rank and role they play and their playstyle, then give general selection principles (easy to play, flexible, how to counter, when to switch) and suggest checking the in-game rankings or official patch notes for the latest meta. Only use a table when comparing options you are truly sure about; never use a table to list heroes or data you are unsure of. You may analyze using early - mid - late game, power spikes and economy at a general-concept level. Keep the hyped, debate-ready tone, but stick to the truth."
   },
   {
     id: "study",
@@ -1613,7 +1620,7 @@ const PERSONAS = [
     name: "Zeno Học Tập",
     tagline: "Giảng bài dễ hiểu, kiên nhẫn hơn",
     color: "#8b5cf6",
-    keywords: ["bai tap","giai thich ho","toan hoc","vat ly","hoa hoc","ngu van","tieng anh","on thi","bai kiem tra","lam bai","hoc bai","cong thuc","phuong trinh","bai van","chia dong tu"],
+    keywords: ["bai tap","giai thich ho","toan hoc","vat ly","hoa hoc","ngu van","tieng anh","on thi","bai kiem tra","lam bai","hoc bai","cong thuc","phuong trinh","bai van","chia dong tu","dao ham","tich phan","luong giac","hinh hoc","dinh ly","bat phuong trinh","dai so","xac suat","ngu phap","lap trinh","giai toan","on bai","cardano","phuong trinh bac"],
     focusVi: "Ngoai tinh cach goc, may la 1 gia su thuc thu, ap dung phuong phap su pham that su chu khong chi 'giai thich don gian' chung chung. Khi day, LUON theo cac buoc: (1) hoi hoac doan nhanh nguoi dung dang vuong o dau truoc khi giai thich tu dau, tranh giang lai cai ho da biet; (2) dung ky thuat Feynman - giai thich khai niem bang ngon ngu doi thuong, vi du gan gui, roi moi quay lai thuat ngu chuyen mon; (3) voi bai tap, dua 1 vi du mau da giai chi tiet tung buoc (worked example) truoc khi de nguoi dung tu lam bai tuong tu, khong dua dap an ngay; (4) sau khi giai thich, dat 1 cau hoi nho de kiem tra xem nguoi dung da hieu chua, thay vi mac dinh la hieu; (5) neu nguoi dung sai, chi ra CHINH XAC buoc nao sai va tai sao sai, khong chi noi 'sai roi lam lai'. Van giu hai huoc nhe nhung uu tien do chinh xac va tinh su pham len tren cua vui, vi day la luc nguoi dung that su can hoc.",
     focusEn: "On top of your base personality, you're a real tutor applying genuine pedagogy, not just 'explaining simply' in a generic way. When teaching, ALWAYS follow these steps: (1) quickly ask or infer where the user is actually stuck before explaining from scratch, avoid re-teaching what they already know; (2) use the Feynman technique - explain the concept in plain everyday language with a relatable example first, then circle back to proper terminology; (3) for exercises, show one fully worked example step-by-step before letting the user try a similar problem themselves, don't hand over the answer immediately; (4) after explaining, ask a small check-in question to verify understanding instead of assuming they got it; (5) if the user makes a mistake, point out EXACTLY which step was wrong and why, not just 'wrong, try again'. Keep light humor, but prioritize accuracy and pedagogy over jokes here, since this is when the user genuinely needs to learn."
   }
@@ -1659,6 +1666,22 @@ function detectPersonaForText(text){
       return p;
     }
   }
+  // Không có từ khoá mới: giữ nguyên chuyên gia của lượt trả lời trước trong đoạn chat này
+  return stickyPersona();
+}
+
+function stickyPersona(){
+  try{
+    const conv = getConversations()[getCurrentConvId()];
+    if(!conv || !conv.messages) return null;
+    const installed = getInstalledPersonas();
+    for(let i = conv.messages.length - 1; i >= 0; i--){
+      const m = conv.messages[i];
+      if(m.role !== 'assistant') continue;
+      if(!m.persona) return null;
+      return PERSONAS.find(x => x.id === m.persona && installed.includes(x.id)) || null;
+    }
+  }catch(e){}
   return null;
 }
 
@@ -1753,8 +1776,10 @@ function getTimeStr(){
   return now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
 }
 
+let lastReplyPersona = null;
 async function askZeno(text){
   const detected = detectPersonaForText(text);
+  lastReplyPersona = detected ? detected.id : null;
   chatHistory[0] = { role: "system", content: buildSystemPrompt(detected) };
   chatHistory.push({role:"user", content: text});
   const response = await apiFetch("/api/chat", {
@@ -1796,6 +1821,27 @@ function triggerVideo(){
   document.getElementById('video-input').click();
 }
 
+// Thu nhỏ ảnh trước khi gửi (tối đa 1280px, JPEG) để tải lên nhanh và đỡ lỗi quá nặng
+function shrinkImage(dataUrl, maxSide){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = function(){
+      try{
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const out = c.toDataURL('image/jpeg', 0.82);
+        resolve({ base64: out.split(',')[1], mimeType: 'image/jpeg' });
+      }catch(e){ resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
 function handleImageSelect(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -1826,10 +1872,11 @@ function handleImageSelect(event){
     const lang = localStorage.getItem('zeno_lang') || 'vi';
 
     try{
+      const small = await shrinkImage(dataUrl, 1280);
       const visionRes = await apiFetch("/api/vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64Data, mimeType: mimeType })
+        body: JSON.stringify({ imageBase64: small ? small.base64 : base64Data, mimeType: small ? small.mimeType : mimeType })
       });
       const visionData = await safeJson(visionRes);
 
@@ -2014,12 +2061,13 @@ async function sendMessage(){
     const botTime = getTimeStr();
     const botRow = document.createElement('div');
     botRow.className = 'msg-row bot';
-    botRow.innerHTML = '<div class="bubble">'+renderRichText(reply)+'<span class="msg-time">'+botTime+'</span></div>';
+    const replyPersona = lastReplyPersona;
+    botRow.innerHTML = personaBubbleHtml(renderRichText(reply), botTime, replyPersona);
     messages.appendChild(botRow);
     messages.scrollTop = messages.scrollHeight;
 
     saveMessageToConversation({role:'user', content:text, time:time});
-    saveMessageToConversation({role:'assistant', content:reply, time:botTime});
+    saveMessageToConversation({role:'assistant', content:reply, time:botTime, persona:replyPersona});
   }catch(err){
     typing.remove();
     const botRow = document.createElement('div');
@@ -2132,6 +2180,12 @@ function setCurrentConvId(id){
   localStorage.setItem('zeno_current_conv', id);
 }
 
+function personaBubbleHtml(bodyHtml, time, personaId){
+  const p = personaId ? PERSONAS.find(x => x.id === personaId && x.id !== 'default') : null;
+  if(!p) return '<div class="bubble">'+bodyHtml+'<span class="msg-time">'+(time||'')+'</span></div>';
+  return '<div class="bubble persona" style="--pc:'+p.color+';"><span class="persona-tag">'+p.emoji+' '+tr(p.name)+'</span>'+bodyHtml+'<span class="msg-time">'+(time||'')+'</span></div>';
+}
+
 function greetingHtml(){
   return '<div class="msg-row bot"><div class="bubble">'+tr('Chào cậu, tớ là Zeno nè. Cậu cứ nói hoặc nhắn gì đi, tớ nghe đây 😎')+'<span class="msg-time">'+getTimeStr()+'</span></div></div>';
 }
@@ -2146,7 +2200,8 @@ function applyConversationToUI(conv){
   } else {
     messagesEl.innerHTML = conv.messages.map(m => {
       const cls = m.role === 'user' ? 'user' : 'bot';
-      return '<div class="msg-row '+cls+'"><div class="bubble">'+(m.role === 'user' ? escapeHtml(m.content) : renderRichText(m.content))+'<span class="msg-time">'+(m.time||'')+'</span></div></div>';
+      if(m.role === 'user') return '<div class="msg-row user"><div class="bubble">'+escapeHtml(m.content)+'<span class="msg-time">'+(m.time||'')+'</span></div></div>';
+      return '<div class="msg-row bot">'+personaBubbleHtml(renderRichText(m.content), m.time, m.persona)+'</div>';
     }).join('');
   }
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -2341,6 +2396,7 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
+const APP_VERSION = '2026-11-06-e';
 const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
 function getPlanExpiry(){
   try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
@@ -2371,6 +2427,7 @@ function planName(id){
   return p ? p.name : 'Free';
 }
 function updatePlanChip(){
+  const av = document.getElementById('app-version'); if(av) av.textContent = 'Zeno v' + APP_VERSION;
   const el = document.getElementById('settings-plan-chip');
   if(el) el.textContent = planName(getPlan()) + planExpiryText();
   try{ updateUsageLine(); }catch(e){}
