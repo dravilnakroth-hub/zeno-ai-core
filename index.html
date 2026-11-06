@@ -156,16 +156,44 @@
     flex-direction:column;
     gap:14px;
   }
-  .msg-row{display:flex;gap:8px;max-width:82%;}
-  .msg-row.user{align-self:flex-end;flex-direction:row-reverse;}
-  .msg-row.bot{align-self:flex-start;}
-  .msg-avatar{width:28px;height:28px;flex-shrink:0;margin-top:2px;}
-  .bubble{
-    padding:12px 15px;
-    border-radius:16px;
-    font-size:15px;
-    line-height:1.5;
-  }
+.msg-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 92%;
+}
+
+.msg-row.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+  width: auto;
+  max-width: 82%;
+}
+
+.msg-row.bot {
+  align-self: flex-start;
+  max-width: 92%;
+}
+
+.bubble {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 16px 19px;
+  border-radius: 17px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.bubble p {
+  margin: 0 0 12px;
+}
+
+.bubble p:last-child {
+  margin-bottom: 0;
+}
   .msg-row.bot .bubble{
     background:var(--card-2);
     border-bottom-left-radius:4px;
@@ -567,14 +595,23 @@
     #chatlist-overlay .store-title{font-size:18px;}
     #screen-chat{padding-left:300px;}
     .chat-header{padding:16px 24px;}
-    .messages{padding:28px max(24px, calc((100% - 860px)/2));gap:16px;}
-    .msg-row{max-width:72%;}
-    .bubble{font-size:16px;}
-    .input-bar{
-      padding:16px max(24px, calc((100% - 860px)/2)) 22px;
-      background:transparent;
-      border-top:none;
-    }
+.messages {
+  padding: 28px max(24px, calc((100% - 1100px)/2));
+  gap: 20px;
+}
+
+.msg-row {
+  max-width: 88%;
+}
+
+.msg-row.bot {
+  max-width: 92%;
+}
+
+.bubble {
+  font-size: 16px;
+  line-height: 1.75;
+}
     .attach-menu{padding:0 max(24px, calc((100% - 860px)/2)) 12px;}
     .chat-header [aria-label="Đoạn chat"],
     .chat-header [aria-label="Danh sách đoạn chat"]{display:none;}
@@ -2079,7 +2116,7 @@ async function sendMessage(){
 }
 
 // ===== Hiển thị Markdown (bảng, đậm, danh sách, code) =====
-function mdInline(t){
+function mdInline(t) {
   return t
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
