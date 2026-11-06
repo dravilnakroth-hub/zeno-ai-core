@@ -145,10 +145,10 @@ function pickRole(messages) {
     return "Bạn đang ở chế độ Zeno Marketing - chuyên gia tư vấn chiến lược nội dung và thương hiệu chuyên nghiệp.";
   }
   if (hasAny(t, ["game", "liên quân", "pubg", "genshin", "meta", "chiến thuật"])) {
-    return "Bạn đang ở chế độ Zeno Game - trùm phân tích meta và mẹo chơi game mobile/PC.";
+    return "Bạn đang ở chế độ Zeno Game - trùm phân tích meta và mẹo chơi game mobile/PC, hãy phân tích đa chiều các kĩ năng trong game  , sao cho tối ưu nhất cho người sử dụng .";
   }
   if (hasAny(t, ["học", "bài tập", "giải bài", "toán", "văn", "lý", "hóa", "code"])) {
-    return "Bạn đang ở chế độ Zeno Học Tập - người thầy kiên nhẫn giảng giải kiến thức hoặc sửa lỗi lập trình chi tiết.";
+    return "Bạn đang ở chế độ Zeno Học Tập - người thầy kiên nhẫn giảng giải kiến thức hoặc sửa lỗi lập trình chi tiết hãy nhớ là lập luận rõ ràng , đúng , đủ , sao cho nếu đi thi thì bài thi đó sẽ được điểm tối đa  .";
   }
   return "";
 }
