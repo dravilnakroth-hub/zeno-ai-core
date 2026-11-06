@@ -1320,6 +1320,7 @@ const EN_MAP = {
   'Chế độ thử (chỉ để test, sẽ tắt khi mở bán):': 'Test mode (for testing only, will be off at launch):',
   'Thử gói': 'Try plan',
   'Đặt lại lượt hôm nay': "Reset today's usage",
+  'Cậu cần đăng nhập để chat với Zeno. Đăng xuất rồi đăng nhập lại nếu cậu đã có tài khoản.': 'You need to sign in to chat with Zeno. If you already have an account, sign out and sign in again.',
   'Zeno Gốc': 'Zeno Core',
   'Tính cách gốc, tám chuyện, cà khịa nhẹ': 'The original: chatty, a little cheeky',
   'Tư vấn content, quảng cáo, xây thương hiệu': 'Content, ads and branding advice',
@@ -1674,6 +1675,24 @@ function detectImageGenIntent(text){
 }
 
 // Đọc JSON an toàn: server lỗi trả chữ thường (vd "A server error occurred") thì báo lỗi dễ hiểu thay vì vỡ
+// Gọi API của Zeno kèm thẻ đăng nhập Supabase (server dùng thẻ này để biết ai đang gọi và gói nào)
+async function apiFetch(url, opts){
+  opts = opts || {};
+  const headers = Object.assign({}, opts.headers || {});
+  try{
+    if(sb){
+      const r = await sb.auth.getSession();
+      const tok = r && r.data && r.data.session && r.data.session.access_token;
+      if(tok) headers['Authorization'] = 'Bearer ' + tok;
+    }
+  }catch(e){}
+  const res = await fetch(url, Object.assign({}, opts, { headers: headers }));
+  if(res.status === 401){
+    try{ res.zenoNeedLogin = true; }catch(e){}
+  }
+  return res;
+}
+
 async function safeJson(res){
   const raw = await res.text();
   try{
@@ -1689,7 +1708,7 @@ async function safeJson(res){
 }
 
 async function generateZenoImage(prompt){
-  const res = await fetch("/api/generate-image", {
+  const res = await apiFetch("/api/generate-image", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt: prompt })
@@ -1738,12 +1757,16 @@ async function askZeno(text){
   const detected = detectPersonaForText(text);
   chatHistory[0] = { role: "system", content: buildSystemPrompt(detected) };
   chatHistory.push({role:"user", content: text});
-  const response = await fetch("/api/chat", {
+  const response = await apiFetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages: chatHistory })
   });
   const data = await safeJson(response);
+  if(response.status === 401){
+    chatHistory.pop();
+    throw new Error(tr('Cậu cần đăng nhập để chat với Zeno. Đăng xuất rồi đăng nhập lại nếu cậu đã có tài khoản.'));
+  }
   if(!response.ok){
     const errMsg = (data.error && data.error.message) ? data.error.message : tr("Lỗi không xác định");
     throw new Error(errMsg);
@@ -1803,7 +1826,7 @@ function handleImageSelect(event){
     const lang = localStorage.getItem('zeno_lang') || 'vi';
 
     try{
-      const visionRes = await fetch("/api/vision", {
+      const visionRes = await apiFetch("/api/vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64Data, mimeType: mimeType })
@@ -1889,7 +1912,7 @@ function handleVideoSelect(event){
     messages.scrollTop = messages.scrollHeight;
 
     try{
-      const videoRes = await fetch("/api/video", {
+      const videoRes = await apiFetch("/api/video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ videoBase64: base64Data, mimeType: mimeType })
