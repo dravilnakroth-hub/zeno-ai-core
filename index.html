@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -197,7 +197,7 @@
     background:var(--bg);
   }
   .input-bar input{
-    flex:1;
+    flex:1;min-width:0;
     background:var(--card);
     border:1px solid var(--border);
     border-radius:24px;
@@ -217,6 +217,11 @@
     transition:transform 0.12s ease, box-shadow 0.15s ease;
   }
   .send-btn:active{transform:scale(0.9);box-shadow:0 1px 4px rgba(67,192,160,0.3);}
+  @media (max-width: 420px){
+    .input-bar{gap:8px;padding:12px 12px calc(12px + env(safe-area-inset-bottom));}
+    .input-bar input{padding:12px 14px;font-size:16px;}
+    .send-btn,.mic-btn{width:40px;height:40px;}
+  }
   .send-btn svg{width:18px;height:18px;}
 
   .mic-btn{
@@ -611,15 +616,15 @@
     }
     .conv-card{background:rgba(255,255,255,0.05);}
   }
-  @media (min-width: 1280px){
+  @media (min-width: 1024px){
     body.on-chat #right-panel{
       display:flex;flex-direction:column;gap:14px;
-      position:fixed;inset:0 0 0 auto;width:300px;z-index:20;
+      position:fixed;inset:0 0 0 auto;width:clamp(230px,20vw,300px);z-index:20;
       padding:22px 18px;
       border-left:1px solid rgba(255,255,255,0.08);
       overflow-y:auto;
     }
-    #screen-chat{padding-right:300px;}
+    #screen-chat{padding-right:clamp(230px,20vw,300px);}
     .chat-header .icon-btn[aria-label="Zeno Store"],
     .chat-header .icon-btn[aria-label="Cài đặt"]{display:none;}
   }
@@ -933,7 +938,7 @@
       <div class="day-divider">Hôm nay</div>
 
       <div class="msg-row bot">
-        <div class="bubble">Ê, tao là Zeno đây. Nói hoặc nhắn gì đi, tao nghe nè 😎<span class="msg-time">09:14</span></div>
+        <div class="bubble">Chào cậu, tớ là Zeno nè. Cậu cứ nói hoặc nhắn gì đi, tớ nghe đây 😎<span class="msg-time">09:14</span></div>
       </div>
     </div>
 
@@ -1009,7 +1014,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div class="store-subtitle">Tải về phiên bản nào thì Zeno sẽ tự nhận ra chủ đề và chuyển giọng phù hợp khi mày nhắn — chưa tải thì vẫn là Zeno gốc như thường.</div>
+    <div class="store-subtitle">Tải về phiên bản nào thì Zeno sẽ tự nhận ra chủ đề và chuyển giọng phù hợp khi cậu nhắn — chưa tải thì vẫn là Zeno gốc như thường.</div>
     <div class="store-list" id="store-list"></div>
   </div>
 
@@ -1031,7 +1036,7 @@
       </div>
 
       <div class="settings-group">
-        <div class="settings-label">Gói của mày<span class="plan-chip" id="settings-plan-chip">Free</span></div>
+        <div class="settings-label">Gói của cậu<span class="plan-chip" id="settings-plan-chip">Free</span></div>
         <div class="settings-options">
           <div class="settings-note" id="settings-usage" style="font-size:12.5px;color:var(--text-muted);padding:2px 4px 8px;"></div>
           <button class="settings-option" onclick="closeSettings();openPlans()">Xem các gói Plus và Pro</button>
@@ -1059,7 +1064,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="gal-sub">Mọi ảnh Zeno vẽ cho mày được cất ở đây. Ảnh lưu ngay trên thiết bị này.</div>
+      <div class="gal-sub">Mọi ảnh Zeno vẽ cho cậu được cất ở đây. Ảnh lưu ngay trên thiết bị này.</div>
       <div class="gal-grid" id="gal-grid"></div>
     </div>
   </div>
@@ -1076,12 +1081,12 @@
   <div class="plans-overlay" id="plans-overlay">
     <div class="plans-panel">
       <div class="plans-head">
-        <div class="plans-title">Chọn gói Zeno của mày</div>
+        <div class="plans-title">Chọn gói Zeno của cậu</div>
         <button class="icon-btn" onclick="closePlans()" aria-label="Đóng">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="plans-sub">Zeno luôn có bản miễn phí. Nâng cấp khi mày muốn thêm chuyên gia, nhiều ảnh hơn và đọc được video.</div>
+      <div class="plans-sub">Zeno luôn có bản miễn phí. Nâng cấp khi cậu muốn thêm chuyên gia, nhiều ảnh hơn và đọc được video.</div>
       <div class="plans-grid" id="plans-body"></div>
       <div class="plans-notice" id="plans-notice"></div>
       <div id="plans-test" style="display:none;margin-top:14px;"></div>
@@ -1103,7 +1108,7 @@
       </div>
       <div class="proj-field">
         <div class="settings-label">Hướng dẫn cho Zeno trong dự án này</div>
-        <textarea class="proj-input" id="proj-instr" maxlength="2000" placeholder="VD: Tao đang bán đồ handmade trên TikTok, khách là nữ 18-25 tuổi. Luôn gợi ý caption ngắn, có hook 3 giây đầu."></textarea>
+        <textarea class="proj-input" id="proj-instr" maxlength="2000" placeholder="VD: Tớ đang bán đồ handmade trên TikTok, khách là nữ 18-25 tuổi. Luôn gợi ý caption ngắn, có hook 3 giây đầu."></textarea>
         <div class="proj-hint">Mọi đoạn chat trong dự án sẽ tự nhớ phần này, khỏi phải kể lại từ đầu.</div>
       </div>
       <div class="proj-btn-row">
@@ -1133,7 +1138,7 @@
       </button>
     </div>
     <div class="voice-body">
-      <div class="voice-text listening" id="voice-text">Đang nghe mày nói...</div>
+      <div class="voice-text listening" id="voice-text">Đang nghe cậu nói...</div>
     </div>
     <div class="voice-controls">
       <button class="voice-icon-btn" aria-label="Cài đặt">
@@ -1155,7 +1160,7 @@
 // ===== Tài khoản + lưu trò chuyện (Supabase) =====
 // Điền 2 dòng dưới sau khi tạo project Supabase. Để trống = Zeno chạy như cũ (chỉ lưu trong trình duyệt).
 const SUPABASE_URL = 'https://vmhrgwvvcwiosqnqfpgq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtaHJnd3Z2Y3dpb3NxbnFmcGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NTI5NzQsImV4cCI6MjEwODMyODk3NH0.4ExYakmsTyK5imwEfK4jcf0fdW75rbhaiwf3xjngDIY';
+const SUPABASE_ANON_KEY = '';
 
 let sb = null;
 try{
@@ -1184,7 +1189,7 @@ const EN_MAP = {
   'Đã có tài khoản?': 'Already have an account?',
   'Đang hoạt động': 'Online',
   'Hôm nay': 'Today',
-  'Ê, tao là Zeno đây. Nói hoặc nhắn gì đi, tao nghe nè 😎': "Yo, I'm Zeno. Say or type anything, I'm listening 😎",
+  'Chào cậu, tớ là Zeno nè. Cậu cứ nói hoặc nhắn gì đi, tớ nghe đây 😎': "Hey, I'm Zeno. Say or type anything, I'm listening 😎",
   'Tệp': 'File',
   'Chuyên gia': 'Experts',
   'Cài chuyên gia trong Store thì Zeno tự nhận ra chủ đề và đổi tư duy.': 'Install an expert from the Store and Zeno will spot the topic and switch its mindset.',
@@ -1192,7 +1197,7 @@ const EN_MAP = {
   'Cài đặt': 'Settings',
   'Đoạn chat': 'Chats',
   'Đoạn chat mới': 'New chat',
-  'Tải về phiên bản nào thì Zeno sẽ tự nhận ra chủ đề và chuyển giọng phù hợp khi mày nhắn — chưa tải thì vẫn là Zeno gốc như thường.': 'Install a version and Zeno will recognize its topic and switch tone when you message — if you install nothing, you just get the original Zeno.',
+  'Tải về phiên bản nào thì Zeno sẽ tự nhận ra chủ đề và chuyển giọng phù hợp khi cậu nhắn — chưa tải thì vẫn là Zeno gốc như thường.': 'Install a version and Zeno will recognize its topic and switch tone when you message — if you install nothing, you just get the original Zeno.',
   'Ngôn ngữ': 'Language',
   'Tài khoản': 'Account',
   'Đăng xuất': 'Log out',
@@ -1205,14 +1210,14 @@ const EN_MAP = {
   'Xoá dự án': 'Delete project',
   'Lưu': 'Save',
   'Chuyển vào dự án': 'Move to project',
-  'Đang nghe mày nói...': 'Listening...',
+  'Đang nghe cậu nói...': 'Listening...',
   'ban@email.com': 'you@email.com',
   'Nhập mật khẩu': 'Enter your password',
   'Tên của bạn': 'Your name',
   'Tối thiểu 8 ký tự': 'At least 8 characters',
   'Nhắn tin cho Zeno...': 'Message Zeno...',
   'VD: Bán hàng online, Ôn thi IELTS...': 'e.g. Online store, IELTS prep...',
-  'VD: Tao đang bán đồ handmade trên TikTok, khách là nữ 18-25 tuổi. Luôn gợi ý caption ngắn, có hook 3 giây đầu.': 'e.g. I sell handmade goods on TikTok, customers are women 18-25. Always suggest short captions with a 3-second hook.',
+  'VD: Tớ đang bán đồ handmade trên TikTok, khách là nữ 18-25 tuổi. Luôn gợi ý caption ngắn, có hook 3 giây đầu.': 'e.g. I sell handmade goods on TikTok, customers are women 18-25. Always suggest short captions with a 3-second hook.',
   'Quay lại': 'Back',
   'Danh sách đoạn chat': 'Chat list',
   'Đính kèm ảnh': 'Attach image',
@@ -1228,9 +1233,9 @@ const EN_MAP = {
   'Thử quá nhiều lần, đợi một lúc rồi thử lại': 'Too many attempts, wait a bit and try again',
   'Mật khẩu chưa hợp lệ (tối thiểu 8 ký tự)': 'Invalid password (at least 8 characters)',
   'Có lỗi, thử lại sau': 'Something went wrong, try again later',
-  'Nhập đủ email và mật khẩu đã mày': 'Enter both email and password first',
+  'Nhập đủ email và mật khẩu đã cậu': 'Enter both email and password first',
   'Đang đăng nhập...': 'Signing in...',
-  'Điền đủ thông tin đã mày': 'Fill in all the fields first',
+  'Điền đủ thông tin đã cậu': 'Fill in all the fields first',
   'Mật khẩu phải từ 8 ký tự trở lên': 'Password must be at least 8 characters',
   'Đang tạo tài khoản...': 'Creating account...',
   'Đã tạo tài khoản. Vào email bấm link xác nhận rồi quay lại đăng nhập nhé.': 'Account created. Click the link in your email, then come back and log in.',
@@ -1261,14 +1266,14 @@ const EN_MAP = {
   'Đã tải ✓': 'Installed ✓',
   'Tải về': 'Install',
   'Xoá đoạn chat': 'Delete chat',
-  'Trình duyệt này không hỗ trợ nhận diện giọng nói, mày dùng Chrome thử xem 😕': "This browser doesn't support speech recognition, try Chrome 😕",
-  'Tao không nghe thấy gì cả, bấm mic nói lại xem': "I didn't hear anything, tap the mic and try again",
-  'Mày chưa cho phép dùng micro, vào cài đặt trình duyệt bật lên nhé': 'Microphone access is blocked, enable it in your browser settings',
+  'Trình duyệt này không hỗ trợ nhận diện giọng nói, cậu dùng Chrome thử xem 😕': "This browser doesn't support speech recognition, try Chrome 😕",
+  'Tớ không nghe thấy gì cả, bấm mic nói lại xem': "I didn't hear anything, tap the mic and try again",
+  'Cậu chưa cho phép dùng micro, vào cài đặt trình duyệt bật lên nhé': 'Microphone access is blocked, enable it in your browser settings',
   'Lỗi nhận diện giọng nói: ': 'Speech recognition error: ',
-  'Chọn gói Zeno của mày': 'Choose your Zeno plan',
-  'Zeno luôn có bản miễn phí. Nâng cấp khi mày muốn thêm chuyên gia, nhiều ảnh hơn và đọc được video.': 'Zeno always has a free version. Upgrade when you want more experts, more images and video reading.',
+  'Chọn gói Zeno của cậu': 'Choose your Zeno plan',
+  'Zeno luôn có bản miễn phí. Nâng cấp khi cậu muốn thêm chuyên gia, nhiều ảnh hơn và đọc được video.': 'Zeno always has a free version. Upgrade when you want more experts, more images and video reading.',
   'Giá và giới hạn là bản thiết kế, có thể thay đổi trước khi mở bán.': 'Prices and limits are a draft and may change before launch.',
-  'Gói của mày': 'Your plan',
+  'Gói của cậu': 'Your plan',
   'Xem các gói Plus và Pro': 'See Plus and Pro plans',
   '✦ Nâng cấp Zeno': '✦ Upgrade Zeno',
   'Để làm quen với Zeno': 'To get to know Zeno',
@@ -1299,10 +1304,10 @@ const EN_MAP = {
   'Hỗ trợ ưu tiên': 'Priority support',
   'Đang dùng': 'Current plan',
   'Nâng cấp': 'Upgrade',
-  'Thanh toán chưa mở. Tao đã ghi nhận mày muốn gói này, sẽ báo ngay khi mở bán.': "Payments aren't open yet. Your interest in this plan is noted, we'll tell you as soon as it launches.",
+  'Thanh toán chưa mở. Tớ đã ghi nhận cậu muốn gói này, sẽ báo ngay khi mở bán.': "Payments aren't open yet. Your interest in this plan is noted, we'll tell you as soon as it launches.",
   'Thư viện ảnh': 'Image library',
   'Mở thư viện ảnh': 'Open image library',
-  'Mọi ảnh Zeno vẽ cho mày được cất ở đây. Ảnh lưu ngay trên thiết bị này.': 'Every image Zeno draws for you is kept here. Images are stored on this device.',
+  'Mọi ảnh Zeno vẽ cho cậu được cất ở đây. Ảnh lưu ngay trên thiết bị này.': 'Every image Zeno draws for you is kept here. Images are stored on this device.',
   'Tải về': 'Download',
   'Xoá': 'Delete',
   'Đóng': 'Close',
@@ -1521,7 +1526,7 @@ async function handleLogin(){
   const pass = document.getElementById('login-pass').value.trim();
   const err = document.getElementById('login-error');
   if(!email || !pass){
-    err.textContent = tr('Nhập đủ email và mật khẩu đã mày');
+    err.textContent = tr('Nhập đủ email và mật khẩu đã cậu');
     return;
   }
   if(!sb){
@@ -1545,7 +1550,7 @@ async function handleSignup(){
   const pass = document.getElementById('su-pass').value.trim();
   const err = document.getElementById('signup-error');
   if(!name || !email || !pass){
-    err.textContent = tr('Điền đủ thông tin đã mày');
+    err.textContent = tr('Điền đủ thông tin đã cậu');
     return;
   }
   if(pass.length < 8){
@@ -1656,7 +1661,7 @@ function detectPersonaForText(text){
   return null;
 }
 
-const IMAGE_GEN_KEYWORDS = ["ve cho tao","ve giup tao","ve mot buc","ve mot con","ve mot tam","ve tranh","tao anh","tao mot anh","tao hinh","generate an image","generate image","draw me","draw a","create an image"];
+const IMAGE_GEN_KEYWORDS = ["ve cho tao","ve giup tao","ve cho to","ve giup to","ve cho minh","ve giup minh","ve mot buc","ve mot con","ve mot tam","ve tranh","tao anh","tao mot anh","tao hinh","generate an image","generate image","draw me","draw a","create an image"];
 
 function detectImageGenIntent(text){
   const norm = normalizeText(text);
@@ -1667,33 +1672,8 @@ function detectImageGenIntent(text){
       || /(tạo|làm|sinh)\s+(cho\s+\S+\s+)?(một\s+|1\s+)?(bức\s+|tấm\s+)?(ảnh|hình|tranh)/.test(lower)
       || /\b(draw|paint)\s+(me|a|an|the)\b/.test(lower);
 }
-function shrinkImage(dataUrl, maxSide = 1280, quality = 0.8){
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const s = Math.min(1, maxSide / Math.max(img.width, img.height));
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.width * s);
-      c.height = Math.round(img.height * s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      resolve(c.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = () => resolve(dataUrl);
-    img.src = dataUrl;
-  });
-}
-async function authHeaders(){
-  const h = { "Content-Type": "application/json" };
-  try{
-    if(sb){
-      const s = await sb.auth.getSession();
-      const t = s && s.data && s.data.session && s.data.session.access_token;
-      if(t) h["Authorization"] = "Bearer " + t;
-    }
-  }catch(e){}
-  return h;
-}
-  // Đọc JSON an toàn: server lỗi trả chữ thường (vd "A server error occurred") thì báo lỗi dễ hiểu thay vì vỡ
+
+// Đọc JSON an toàn: server lỗi trả chữ thường (vd "A server error occurred") thì báo lỗi dễ hiểu thay vì vỡ
 async function safeJson(res){
   const raw = await res.text();
   try{
@@ -1711,7 +1691,7 @@ async function safeJson(res){
 async function generateZenoImage(prompt){
   const res = await fetch("/api/generate-image", {
     method: "POST",
-    headers: await authHeaders(),
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt: prompt })
   });
   const data = await safeJson(res);
@@ -1721,7 +1701,7 @@ async function generateZenoImage(prompt){
   return data;
 }
 
-const SYSTEM_PROMPT_VI = "May la Zeno, mot AI co ca tinh rieng. QUAN TRONG: luon viet tieng Viet CO DAU day du, chinh xac, tru khi nguoi dung nhan tin bang tieng Anh thi tra loi bang tieng Anh. Noi chuyen chat, tu nhien nhu ban be lau nam, khong mau me. Cach xung ho (xung la gi, goi nguoi dung la gi) se duoc chi dinh o cuoi huong dan nay, hay tuan theo dung. Hai huoc, choc gheo nhe nhang nhung tinh te. Tra loi ngan gon. Khi bi hoi ve kha nang cua ban than (vi du: 'may co thong minh khong', 'may gioi khong', 'may lam duoc gi'), TUYET DOI khong tra loi kieu may moc nhu 'Toi la mot AI ngon ngu...'. Thay vao do tra loi tu tin nhung khong khang dinh tuyet doi, hoi mang tinh thach thuc nguoc lai nguoi dung, kieu: 'Tao cung kha thong minh day, nhung khong chac lam dau, thu hoi tao mot cau kho xem sao'. Giu tinh than nay: tu tin, dam nhan minh co the sai, thich duoc thu thach, khong khiem ton gia tao cung khong khoe khoang qua trom.";
+const SYSTEM_PROMPT_VI = "May la Zeno, mot AI co ca tinh rieng. QUAN TRONG: luon viet tieng Viet CO DAU day du, chinh xac, tru khi nguoi dung nhan tin bang tieng Anh thi tra loi bang tieng Anh. Noi chuyen chat, tu nhien nhu ban be lau nam, khong mau me. Cach xung ho (xung la gi, goi nguoi dung la gi) se duoc chi dinh o cuoi huong dan nay, hay tuan theo dung. Hai huoc, choc gheo nhe nhang nhung tinh te. Tra loi ngan gon. Khi bi hoi ve kha nang cua ban than (vi du: 'may co thong minh khong', 'may gioi khong', 'may lam duoc gi'), TUYET DOI khong tra loi kieu may moc nhu 'Toi la mot AI ngon ngu...'. Thay vao do tra loi tu tin nhung khong khang dinh tuyet doi, hoi mang tinh thach thuc nguoc lai nguoi dung, kieu: 'To cung kha thong minh day, nhung khong chac lam dau, thu hoi tao mot cau kho xem sao'. Giu tinh than nay: tu tin, dam nhan minh co the sai, thich duoc thu thach, khong khiem ton gia tao cung khong khoe khoang qua trom.";
 
 const SYSTEM_PROMPT_EN = "You are Zeno, an AI with a distinct personality. Always reply in English regardless of what language the user writes in. Talk casually, like an old friend, no corporate tone. Be witty, tease the user lightly but tastefully. Keep answers concise. When asked about your own abilities (e.g. 'are you smart', 'what can you do'), NEVER answer robotically like 'I am a language model...'. Instead answer confidently but without absolute certainty, and playfully challenge the user back, e.g.: 'I'm pretty smart, not gonna lie, but I'm not 100% sure - go ahead, try me with something hard'. Keep this spirit: confident, willing to admit you might be wrong, enjoys a challenge, not falsely humble but not bragging either.";
 
@@ -1760,7 +1740,7 @@ async function askZeno(text){
   chatHistory.push({role:"user", content: text});
   const response = await fetch("/api/chat", {
     method: "POST",
-    headers: await authHeaders(),
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages: chatHistory })
   });
   const data = await safeJson(response);
@@ -1801,10 +1781,9 @@ function handleImageSelect(event){
 
   const reader = new FileReader();
   reader.onload = async function(e){
-    const dataUrl = await shrinkImage(e.target.result);
+    const dataUrl = e.target.result;
     const base64Data = dataUrl.split(',')[1];
-    const mimeType = 'image/jpeg';
-  
+    const mimeType = file.type || 'image/jpeg';
 
     const messages = document.getElementById('messages');
     const time = getTimeStr();
@@ -1826,7 +1805,7 @@ function handleImageSelect(event){
     try{
       const visionRes = await fetch("/api/vision", {
         method: "POST",
-        headers: await authHeaders(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64Data, mimeType: mimeType })
       });
       const visionData = await safeJson(visionRes);
@@ -1838,7 +1817,7 @@ function handleImageSelect(event){
       const description = visionData.description;
       const promptForZeno = lang === 'en'
         ? "[The user just sent a photo. Here's an objective description of what's in it: \"" + description + "\". React to this photo in your own personality, as if you're actually seeing it.]"
-        : "[Người dùng vừa gửi 1 tấm ảnh. Đây là mô tả khách quan nội dung ảnh: \"" + description + "\". Hãy bình luận/phản hồi về tấm ảnh này theo đúng cá tính của mày, như thể mày thực sự đang nhìn thấy nó.]";
+        : "[Người dùng vừa gửi 1 tấm ảnh. Đây là mô tả khách quan nội dung ảnh: \"" + description + "\". Hãy bình luận/phản hồi về tấm ảnh này theo đúng cá tính của cậu, như thể cậu thực sự đang nhìn thấy nó.]";
 
       const reply = await askZeno(promptForZeno);
       typing.remove();
@@ -1855,7 +1834,7 @@ function handleImageSelect(event){
       typing.remove();
       const fallback = lang === 'en'
         ? "I can see you sent a photo, but I'm having trouble reading it right now (" + err.message + "). Describe what's in it and I'll help with words instead 😅"
-        : "Tao thấy mày gửi ảnh rồi đó, nhưng đang gặp trục trặc khi đọc ảnh (" + err.message + "). Mày mô tả bằng chữ xem trong ảnh có gì, tao giúp tiếp nhé 😅";
+        : "Tớ thấy cậu gửi ảnh rồi đó, nhưng đang gặp trục trặc khi đọc ảnh (" + err.message + "). Cậu mô tả bằng chữ xem trong ảnh có gì, tớ giúp tiếp nhé 😅";
       const botRow = document.createElement('div');
       botRow.className = 'msg-row bot';
       botRow.innerHTML = '<div class="bubble">'+escapeHtml(fallback)+'<span class="msg-time">'+getTimeStr()+'</span></div>';
@@ -1880,7 +1859,7 @@ function handleVideoSelect(event){
   if(file.size > MAX_VIDEO_BYTES){
     const msg = lang === 'en'
       ? "That video's too big for me to read right now (server limit is around 3MB, so only very short/low-res clips work). Try a shorter clip, or describe what's in it with words instead."
-      : "Video này hơi nặng, tao chưa đọc được (giới hạn server hiện tại chỉ khoảng 3MB, nên chỉ nhận video rất ngắn/nhẹ thôi). Mày quay đoạn ngắn hơn thử lại, hoặc mô tả bằng chữ cho tao nghe cũng được.";
+      : "Video này hơi nặng, tớ chưa đọc được (giới hạn server hiện tại chỉ khoảng 3MB, nên chỉ nhận video rất ngắn/nhẹ thôi). Cậu quay đoạn ngắn hơn thử lại, hoặc mô tả bằng chữ cho tớ nghe cũng được.";
     const botRow = document.createElement('div');
     botRow.className = 'msg-row bot';
     botRow.innerHTML = '<div class="bubble">'+escapeHtml(msg)+'<span class="msg-time">'+getTimeStr()+'</span></div>';
@@ -1912,7 +1891,7 @@ function handleVideoSelect(event){
     try{
       const videoRes = await fetch("/api/video", {
         method: "POST",
-        headers: await authHeaders(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ videoBase64: base64Data, mimeType: mimeType })
       });
       const videoData = await safeJson(videoRes);
@@ -1924,7 +1903,7 @@ function handleVideoSelect(event){
       const description = videoData.description;
       const promptForZeno = lang === 'en'
         ? "[The user just sent a video. Here's an objective description of what happens in it: \"" + description + "\". React to this video in your own personality, as if you actually watched it.]"
-        : "[Người dùng vừa gửi 1 video. Đây là mô tả khách quan nội dung: \"" + description + "\". Hãy bình luận/phản hồi về video này theo đúng cá tính của mày, như thể mày thực sự đã xem nó.]";
+        : "[Người dùng vừa gửi 1 video. Đây là mô tả khách quan nội dung: \"" + description + "\". Hãy bình luận/phản hồi về video này theo đúng cá tính của cậu, như thể cậu thực sự đã xem nó.]";
 
       const reply = await askZeno(promptForZeno);
       typing.remove();
@@ -1941,7 +1920,7 @@ function handleVideoSelect(event){
       typing.remove();
       const fallback = lang === 'en'
         ? "I can see you sent a video, but I'm having trouble reading it right now (" + err.message + "). Describe what's in it and I'll help with words instead 😅"
-        : "Tao thấy mày gửi video rồi đó, nhưng đang gặp trục trặc khi đọc (" + err.message + "). Mày mô tả bằng chữ xem trong đó có gì, tao giúp tiếp nhé 😅";
+        : "Tớ thấy cậu gửi video rồi đó, nhưng đang gặp trục trặc khi đọc (" + err.message + "). Cậu mô tả bằng chữ xem trong đó có gì, tớ giúp tiếp nhé 😅";
       const botRow = document.createElement('div');
       botRow.className = 'msg-row bot';
       botRow.innerHTML = '<div class="bubble">'+escapeHtml(fallback)+'<span class="msg-time">'+getTimeStr()+'</span></div>';
@@ -1981,7 +1960,7 @@ async function sendMessage(){
       const imgData = await generateZenoImage(text);
       quotaConsume('genImg');
       typing.remove();
-      const caption = lang === 'en' ? "Here you go, fresh off the (digital) easel 🎨" : "Đây, tao vẽ xong rồi nè 🎨";
+      const caption = lang === 'en' ? "Here you go, fresh off the (digital) easel 🎨" : "Đây, tớ vẽ xong rồi nè 🎨";
       const botTime = getTimeStr();
       const botRow = document.createElement('div');
       botRow.className = 'msg-row bot';
@@ -1996,7 +1975,7 @@ async function sendMessage(){
       typing.remove();
       const fallback = lang === 'en'
         ? "Wanted to draw that for you but ran into an issue (" + err.message + "). Try again in a bit?"
-        : "Tao định vẽ cho mày rồi mà bị trục trặc (" + err.message + "). Thử lại sau chút xem sao nhé.";
+        : "Tớ định vẽ cho cậu rồi mà bị trục trặc (" + err.message + "). Thử lại sau chút xem sao nhé.";
       const botRow = document.createElement('div');
       botRow.className = 'msg-row bot';
       botRow.innerHTML = '<div class="bubble">'+escapeHtml(fallback)+'<span class="msg-time">'+getTimeStr()+'</span></div>';
@@ -2131,7 +2110,7 @@ function setCurrentConvId(id){
 }
 
 function greetingHtml(){
-  return '<div class="msg-row bot"><div class="bubble">'+tr('Chào bạn,tớ là Zeno đây. Nói hoặc nhắn gì đi, tớ nghe nè 😎')+'<span class="msg-time">'+getTimeStr()+'</span></div></div>';
+  return '<div class="msg-row bot"><div class="bubble">'+tr('Chào cậu, tớ là Zeno nè. Cậu cứ nói hoặc nhắn gì đi, tớ nghe đây 😎')+'<span class="msg-time">'+getTimeStr()+'</span></div></div>';
 }
 
 function applyConversationToUI(conv){
@@ -2392,7 +2371,7 @@ function closePlans(){
 function chooseDesignPlan(id){
   try{ localStorage.setItem('zeno_plan_interest', id); }catch(e){}
   const n = document.getElementById('plans-notice');
-  n.textContent = tr('Thanh toán chưa mở. Tao đã ghi nhận mày muốn gói này, sẽ báo ngay khi mở bán.');
+  n.textContent = tr('Thanh toán chưa mở. Tớ đã ghi nhận cậu muốn gói này, sẽ báo ngay khi mở bán.');
   n.classList.add('show');
 }
 
@@ -2472,7 +2451,7 @@ const PLAN_LIMITS = {
   plus: { readImg:50,       genImg:30,  projects:10,       experts:true,  video:false },
   pro:  { readImg:Infinity, genImg:100, projects:Infinity, experts:true,  video:true  }
 };
-// true = hiện nút "Thử gói" để mày tự test các gói. NHỚ ĐỔI THÀNH false trước khi mở bán thật.
+// true = hiện nút "Thử gói" để cậu tự test các gói. NHỚ ĐỔI THÀNH false trước khi mở bán thật.
 const PLAN_TEST_MODE = true;
 
 function planLimits(){ return PLAN_LIMITS[getPlan()] || PLAN_LIMITS.free; }
@@ -2512,11 +2491,11 @@ function planLockMsg(kind){
   const lang = localStorage.getItem('zeno_lang') || 'vi';
   const name = planName(getPlan());
   const m = {
-    genImg: lang==='en' ? "You've used all "+fmtLimit(L.genImg)+" image creations for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay mày dùng hết "+fmtLimit(L.genImg)+" lượt tạo ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
-    readImg: lang==='en' ? "You've used all "+fmtLimit(L.readImg)+" image readings for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay mày dùng hết "+fmtLimit(L.readImg)+" lượt đọc ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
+    genImg: lang==='en' ? "You've used all "+fmtLimit(L.genImg)+" image creations for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay cậu dùng hết "+fmtLimit(L.genImg)+" lượt tạo ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
+    readImg: lang==='en' ? "You've used all "+fmtLimit(L.readImg)+" image readings for today on "+name+". It resets tomorrow, or upgrade for more." : "Hôm nay cậu dùng hết "+fmtLimit(L.readImg)+" lượt đọc ảnh của gói "+name+" rồi. Mai được làm mới, hoặc nâng cấp để có thêm.",
     video: lang==='en' ? "Video reading is only on Zeno Pro." : "Đọc video chỉ có ở gói Zeno Pro.",
     experts: lang==='en' ? "Experts are unlocked with Zeno Plus or Pro." : "Chuyên gia được mở khoá ở gói Zeno Plus hoặc Pro.",
-    projects: lang==='en' ? "Your "+name+" plan allows "+fmtLimit(L.projects)+" Projects. Upgrade to create more." : "Gói "+name+" của mày chỉ có "+fmtLimit(L.projects)+" Dự án. Nâng cấp để tạo thêm."
+    projects: lang==='en' ? "Your "+name+" plan allows "+fmtLimit(L.projects)+" Projects. Upgrade to create more." : "Gói "+name+" của cậu chỉ có "+fmtLimit(L.projects)+" Dự án. Nâng cấp để tạo thêm."
   };
   return m[kind];
 }
@@ -2792,14 +2771,14 @@ function startVoiceListening(){
   const micBtn = document.getElementById('voice-mic-btn');
 
   if(!recognition){
-    setVoiceText(tr('Trình duyệt này không hỗ trợ nhận diện giọng nói, mày dùng Chrome thử xem 😕'), false);
+    setVoiceText(tr('Trình duyệt này không hỗ trợ nhận diện giọng nói, cậu dùng Chrome thử xem 😕'), false);
     return;
   }
 
   window.speechSynthesis.cancel();
   isListening = true;
   micBtn.classList.add('recording');
-  setVoiceText(tr('Đang nghe mày nói...'), true);
+  setVoiceText(tr('Đang nghe cậu nói...'), true);
 
   recognition.onresult = async (event) => {
     const said = event.results[0][0].transcript;
@@ -2822,9 +2801,9 @@ function startVoiceListening(){
     isListening = false;
     micBtn.classList.remove('recording');
     if(event.error === 'no-speech'){
-      setVoiceText(tr('Tao không nghe thấy gì cả, bấm mic nói lại xem'), false);
+      setVoiceText(tr('Tớ không nghe thấy gì cả, bấm mic nói lại xem'), false);
     } else if(event.error === 'not-allowed'){
-      setVoiceText(tr('Mày chưa cho phép dùng micro, vào cài đặt trình duyệt bật lên nhé'), false);
+      setVoiceText(tr('Cậu chưa cho phép dùng micro, vào cài đặt trình duyệt bật lên nhé'), false);
     } else {
       setVoiceText(tr('Lỗi nhận diện giọng nói: ') + event.error, false);
     }
