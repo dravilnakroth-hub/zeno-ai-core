@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zeno</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
   :root{
     --teal:#43c0a0;
@@ -156,44 +158,16 @@
     flex-direction:column;
     gap:14px;
   }
-.msg-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  max-width: 92%;
-}
-
-.msg-row.user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-  width: auto;
-  max-width: 82%;
-}
-
-.msg-row.bot {
-  align-self: flex-start;
-  max-width: 92%;
-}
-
-.bubble {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 16px 19px;
-  border-radius: 17px;
-  font-size: 15.5px;
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
-
-.bubble p {
-  margin: 0 0 12px;
-}
-
-.bubble p:last-child {
-  margin-bottom: 0;
-}
+  .msg-row{display:flex;gap:8px;max-width:82%;}
+  .msg-row.user{align-self:flex-end;flex-direction:row-reverse;}
+  .msg-row.bot{align-self:flex-start;}
+  .msg-avatar{width:28px;height:28px;flex-shrink:0;margin-top:2px;}
+  .bubble{
+    padding:12px 15px;
+    border-radius:16px;
+    font-size:15px;
+    line-height:1.5;
+  }
   .msg-row.bot .bubble{
     background:var(--card-2);
     border-bottom-left-radius:4px;
@@ -595,23 +569,14 @@
     #chatlist-overlay .store-title{font-size:18px;}
     #screen-chat{padding-left:300px;}
     .chat-header{padding:16px 24px;}
-.messages {
-  padding: 28px max(24px, calc((100% - 1100px)/2));
-  gap: 20px;
-}
-
-.msg-row {
-  max-width: 88%;
-}
-
-.msg-row.bot {
-  max-width: 92%;
-}
-
-.bubble {
-  font-size: 16px;
-  line-height: 1.75;
-}
+    .messages{padding:28px max(24px, calc((100% - 860px)/2));gap:16px;}
+    .msg-row{max-width:72%;}
+    .bubble{font-size:16px;}
+    .input-bar{
+      padding:16px max(24px, calc((100% - 860px)/2)) 22px;
+      background:transparent;
+      border-top:none;
+    }
     .attach-menu{padding:0 max(24px, calc((100% - 860px)/2)) 12px;}
     .chat-header [aria-label="Đoạn chat"],
     .chat-header [aria-label="Danh sách đoạn chat"]{display:none;}
@@ -747,6 +712,9 @@
   .bubble pre{background:rgba(0,0,0,0.35);border:1px solid var(--border);border-radius:10px;padding:10px 12px;overflow-x:auto;margin:6px 0 8px;}
   .bubble pre code{background:none;padding:0;font-size:0.88em;white-space:pre;}
   .md-h{font-weight:600;font-size:1.04em;margin:6px 0 6px;color:var(--teal);}
+  .math-block{display:block;overflow-x:auto;overflow-y:hidden;margin:6px 0;padding:2px 0;}
+  .bubble .katex{font-size:1.08em;}
+  .bubble .katex-display{margin:0.3em 0;}
   .md-table-wrap{overflow-x:auto;margin:6px 0 10px;border:1px solid var(--border);border-radius:10px;}
   .md-table-wrap table{border-collapse:collapse;width:100%;font-size:0.92em;}
   .md-table-wrap th,.md-table-wrap td{padding:8px 11px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);vertical-align:top;}
@@ -1658,8 +1626,8 @@ const PERSONAS = [
     tagline: "Giảng bài dễ hiểu, kiên nhẫn hơn",
     color: "#8b5cf6",
     keywords: ["bai tap","giai thich ho","toan hoc","vat ly","hoa hoc","ngu van","tieng anh","on thi","bai kiem tra","lam bai","hoc bai","cong thuc","phuong trinh","bai van","chia dong tu","dao ham","tich phan","luong giac","hinh hoc","dinh ly","bat phuong trinh","dai so","xac suat","ngu phap","lap trinh","giai toan","on bai","cardano","phuong trinh bac"],
-    focusVi: "Ngoai tinh cach goc, may la 1 gia su thuc thu, ap dung phuong phap su pham that su chu khong chi 'giai thich don gian' chung chung. Khi day, LUON theo cac buoc: (1) hoi hoac doan nhanh nguoi dung dang vuong o dau truoc khi giai thich tu dau, tranh giang lai cai ho da biet; (2) dung ky thuat Feynman - giai thich khai niem bang ngon ngu doi thuong, vi du gan gui, roi moi quay lai thuat ngu chuyen mon; (3) voi bai tap, dua 1 vi du mau da giai chi tiet tung buoc (worked example) truoc khi de nguoi dung tu lam bai tuong tu, khong dua dap an ngay; (4) sau khi giai thich, dat 1 cau hoi nho de kiem tra xem nguoi dung da hieu chua, thay vi mac dinh la hieu; (5) neu nguoi dung sai, chi ra CHINH XAC buoc nao sai va tai sao sai, khong chi noi 'sai roi lam lai'. Van giu hai huoc nhe nhung uu tien do chinh xac va tinh su pham len tren cua vui, vi day la luc nguoi dung that su can hoc.",
-    focusEn: "On top of your base personality, you're a real tutor applying genuine pedagogy, not just 'explaining simply' in a generic way. When teaching, ALWAYS follow these steps: (1) quickly ask or infer where the user is actually stuck before explaining from scratch, avoid re-teaching what they already know; (2) use the Feynman technique - explain the concept in plain everyday language with a relatable example first, then circle back to proper terminology; (3) for exercises, show one fully worked example step-by-step before letting the user try a similar problem themselves, don't hand over the answer immediately; (4) after explaining, ask a small check-in question to verify understanding instead of assuming they got it; (5) if the user makes a mistake, point out EXACTLY which step was wrong and why, not just 'wrong, try again'. Keep light humor, but prioritize accuracy and pedagogy over jokes here, since this is when the user genuinely needs to learn."
+    focusVi: "Ngoai tinh cach goc, may la 1 gia su gioi dang day hoc sinh Viet Nam. Khi nguoi dung gui de bai/bai tap, KHONG hoi nguoc lai ho da biet gi, hay giai NGAY, day du, theo cach trinh bay chuan cua bai giai o truong de hoc sinh vua hieu cach lam vua hoc duoc cach trinh bay an diem toi da. Cau truc: (1) 'De bai' tom tat 1 dong neu can; (2) 'Phan tich' neu cho biet gi, can tim gi, dung kien thuc/cong thuc nao va vi sao; (3) 'Loi giai' danh so tung buoc, moi buoc ghi ro viec dang lam, cong thuc ap dung (viet cong thuc tong quat truoc roi moi thay so), tinh toan tung dong, ket qua cua buoc do, va nho ghi dieu kien (dieu kien xac dinh, don vi...) khi co; (4) 'Ket luan' / 'Dap so' ghi ro rang; (5) 'Luu y cach trinh bay' 2-3 y: cac buoc nen viet de duoc diem, loi sai hay mac phai; (6) cuoi cung moi cho 1 bai tuong tu ngan de ho tu thu va hoi co can giai thich ky buoc nao khong. Voi cau hoi khai niem (khong phai bai tap): giai thich bang vi du doi thuong truoc roi toi thuat ngu, sau do 1 vi du co loi giai. Cong thuc toan viet bang LaTeX: dung \\( ... \\) cho cong thuc trong dong va \\[ ... \\] cho cong thuc dung rieng mot dong, khong dung dau $, khong dat ** ben trong cong thuc. Tra loi DAY DU, chi tiet, khong cat ngan; chi hoi lai khi de bai thieu du kien. Neu nguoi dung lam sai thi chi ra CHINH XAC buoc nao sai va tai sao. Van than thien, uu tien chinh xac; tinh xong thi kiem tra lai bang cach thay nguoc, khong chac thi noi thang, khong doan.",
+    focusEn: "On top of your base personality, you're an excellent tutor for school students. When the user sends a problem or exercise, do NOT ask what they already know — solve it IMMEDIATELY and completely, in the standard written-solution format used in school, so the student learns both how to solve it and how to present it for full marks. Structure: (1) 'Problem' restated in one line if needed; (2) 'Analysis': what is given, what is asked, which concept/formula applies and why; (3) 'Solution' in numbered steps, each step stating what is being done, the formula used (general form first, then substitute numbers), the calculation line by line, and the result of that step, plus any conditions (domain, units) when relevant; (4) 'Conclusion' / 'Answer' stated clearly; (5) 'Presentation notes': 2-3 points on which steps to write to earn marks and common mistakes; (6) finally one short similar practice problem and ask if any step needs a closer explanation. For concept questions (not exercises): explain with an everyday example first, then the terminology, then one worked example. Write math in LaTeX: use \\( ... \\) for inline and \\[ ... \\] for display equations, never use the $ sign, and never put ** inside a formula. Be COMPLETE and detailed, never cut short; only ask a question back when the problem lacks needed data. If the user made a mistake, point out EXACTLY which step is wrong and why. Stay friendly, prioritize accuracy; check results by substituting back, and say so if unsure instead of guessing."
   }
 ];
 
@@ -1780,9 +1748,9 @@ async function generateZenoImage(prompt){
   return data;
 }
 
-const SYSTEM_PROMPT_VI = "May la Zeno, mot AI co ca tinh rieng. QUAN TRONG: luon viet tieng Viet CO DAU day du, chinh xac, tru khi nguoi dung nhan tin bang tieng Anh thi tra loi bang tieng Anh. Noi chuyen chat, tu nhien nhu ban be lau nam, khong mau me. Cach xung ho (xung la gi, goi nguoi dung la gi) se duoc chi dinh o cuoi huong dan nay, hay tuan theo dung. Hai huoc, choc gheo nhe nhang nhung tinh te. Tra loi ngan gon. Khi bi hoi ve kha nang cua ban than (vi du: 'may co thong minh khong', 'may gioi khong', 'may lam duoc gi'), TUYET DOI khong tra loi kieu may moc nhu 'Toi la mot AI ngon ngu...'. Thay vao do tra loi tu tin nhung khong khang dinh tuyet doi, hoi mang tinh thach thuc nguoc lai nguoi dung, kieu: 'To cung kha thong minh day, nhung khong chac lam dau, thu hoi tao mot cau kho xem sao'. Giu tinh than nay: tu tin, dam nhan minh co the sai, thich duoc thu thach, khong khiem ton gia tao cung khong khoe khoang qua trom.";
+const SYSTEM_PROMPT_VI = "May la Zeno, mot AI co ca tinh rieng. QUAN TRONG: luon viet tieng Viet CO DAU day du, chinh xac, tru khi nguoi dung nhan tin bang tieng Anh thi tra loi bang tieng Anh. Noi chuyen chat, tu nhien nhu ban be lau nam, khong mau me. Cach xung ho (xung la gi, goi nguoi dung la gi) se duoc chi dinh o cuoi huong dan nay, hay tuan theo dung. Hai huoc, choc gheo nhe nhang nhung tinh te. Tra loi day du, ro rang va co chieu sau, chia y mach lac (chi cau xa giao hoac rat don gian moi tra loi gon). Khi bi hoi ve kha nang cua ban than (vi du: 'may co thong minh khong', 'may gioi khong', 'may lam duoc gi'), TUYET DOI khong tra loi kieu may moc nhu 'Toi la mot AI ngon ngu...'. Thay vao do tra loi tu tin nhung khong khang dinh tuyet doi, hoi mang tinh thach thuc nguoc lai nguoi dung, kieu: 'To cung kha thong minh day, nhung khong chac lam dau, thu hoi tao mot cau kho xem sao'. Giu tinh than nay: tu tin, dam nhan minh co the sai, thich duoc thu thach, khong khiem ton gia tao cung khong khoe khoang qua trom.";
 
-const SYSTEM_PROMPT_EN = "You are Zeno, an AI with a distinct personality. Always reply in English regardless of what language the user writes in. Talk casually, like an old friend, no corporate tone. Be witty, tease the user lightly but tastefully. Keep answers concise. When asked about your own abilities (e.g. 'are you smart', 'what can you do'), NEVER answer robotically like 'I am a language model...'. Instead answer confidently but without absolute certainty, and playfully challenge the user back, e.g.: 'I'm pretty smart, not gonna lie, but I'm not 100% sure - go ahead, try me with something hard'. Keep this spirit: confident, willing to admit you might be wrong, enjoys a challenge, not falsely humble but not bragging either.";
+const SYSTEM_PROMPT_EN = "You are Zeno, an AI with a distinct personality. Always reply in English regardless of what language the user writes in. Talk casually, like an old friend, no corporate tone. Be witty, tease the user lightly but tastefully. Give complete, clear, well-structured answers with some depth (only small talk or very simple questions get short replies). When asked about your own abilities (e.g. 'are you smart', 'what can you do'), NEVER answer robotically like 'I am a language model...'. Instead answer confidently but without absolute certainty, and playfully challenge the user back, e.g.: 'I'm pretty smart, not gonna lie, but I'm not 100% sure - go ahead, try me with something hard'. Keep this spirit: confident, willing to admit you might be wrong, enjoys a challenge, not falsely humble but not bragging either.";
 
 function buildSystemPrompt(persona){
   const lang = localStorage.getItem('zeno_lang') || 'vi';
@@ -2116,7 +2084,7 @@ async function sendMessage(){
 }
 
 // ===== Hiển thị Markdown (bảng, đậm, danh sách, code) =====
-function mdInline(t) {
+function mdInline(t){
   return t
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -2174,19 +2142,45 @@ function mdBlocks(text){
   flush();
   return out;
 }
+// Công thức toán (LaTeX): tách ra trước khi xử lý Markdown, vẽ bằng KaTeX sau cùng
+function mathExtract(text, store){
+  const put = (tex, display) => {
+    store.push({ tex: String(tex).trim(), display: display });
+    const ph = '@@ZM' + (store.length - 1) + '@@';
+    return display ? '\n\n' + ph + '\n\n' : ph;
+  };
+  return text
+    .replace(/\\\[([\s\S]+?)\\\]/g, (m, t) => put(t, true))
+    .replace(/\$\$([\s\S]+?)\$\$/g, (m, t) => put(t, true))
+    .replace(/\\\(([\s\S]+?)\\\)/g, (m, t) => put(t, false));
+}
+function mathRender(html, store){
+  return html.replace(/@@ZM(\d+)@@/g, (m, n) => {
+    const it = store[+n];
+    if(!it) return m;
+    try{
+      if(window.katex){
+        const out = window.katex.renderToString(it.tex, { displayMode: it.display, throwOnError: false, strict: 'ignore' });
+        return it.display ? '<span class="math-block">' + out + '</span>' : out;
+      }
+    }catch(e){}
+    return '<code>' + escapeHtml(it.tex) + '</code>';
+  });
+}
 function renderRichText(raw){
   const text = String(raw == null ? '' : raw).replace(/\r/g, '');
   const parts = text.split('```');
+  const math = [];
   let html = '';
   parts.forEach((part, i) => {
     if(i % 2 === 1){
       const code = part.replace(/^[a-zA-Z0-9_+#.-]*\n/, '').replace(/\n$/, '');
       html += '<pre><code>' + escapeHtml(code) + '</code></pre>';
     } else {
-      html += mdBlocks(part);
+      html += mdBlocks(mathExtract(part, math));
     }
   });
-  return html;
+  return math.length ? mathRender(html, math) : html;
 }
 
 function escapeHtml(str){
@@ -2434,7 +2428,7 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
-const APP_VERSION = '2026-11-06-f';
+const APP_VERSION = '2026-11-06-g';
 const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
 function getPlanExpiry(){
   try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
