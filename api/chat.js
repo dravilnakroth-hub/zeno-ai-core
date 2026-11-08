@@ -513,51 +513,95 @@ const prompt = "Bạn là công cụ thu thập dữ kiện về game, KHÔNG ph
 async function buildGameContext(messages) {
   const games = detectGames(messages);
   if (!games.length) return "";
-  const lastUser = messages.filter(m => m.role === "user" && !m.ctx).slice(-1)[0];
+
+  const lastUser = messages
+    .filter(m => m.role === "user" && !m.ctx)
+    .slice(-1)[0];
+
   const question = String((lastUser && lastUser.content) || "").trim();
   const shouldResearch = question.length >= 12;
 
   const parts = await Promise.all(games.map(async g => {
-    let out = "== " + g.name + " (" + g.platforms.join(", ") + ") ==\nQuy tắc riêng của game này: " + g.specialRules.join(" ");
+    let out =
+      "== " + g.name + " (" + g.platforms.join(", ") + ") ==\n" +
+      "Quy tắc riêng của game này: " + g.specialRules.join(" ");
+
     const jobs = [];
-    if (g.id === "league-of-legends") jobs.push(lolData(messages).then(t => "Dữ liệu chính thức của Riot:\n" + t, e => "[Không lấy được dữ liệu Riot: " + e.message + "]"));
-    if (g.id === "steam") jobs.push(steamData().then(t => "Dữ liệu chính thức của Steam:\n" + t, e => "[Không lấy được dữ liệu Steam: " + e.message + "]"));
-    if (shouldResearch && g.id !== "steam") {
-      jobs.push(googleResearch(g, question).then(r => {
-        if (/KHÔNG TÌM THẤY/i.test(r.notes) && r.notes.length < 60) return "Đã tra Google nhưng KHÔNG tìm thấy dữ kiện đáng tin cho câu hỏi này.";
-        return "Kết quả tra Google (lấy ngay lúc này):\n" + r.notes + (r.sources.length ? "\nNguồn: " + r.sources.join(", ") : "");
-      }, e => "[Chưa tra cứu được trên Google lúc này: " + e.message + "]"));
+
+    if (g.id === "league-of-legends") {
+      jobs.push(
+        lolData(messages).then(
+          t => "Dữ liệu chính thức của Riot:\n" + t,
+          e => "[Không lấy được dữ liệu Riot: " + e.message + "]"
+        )
+      );
     }
+
+    if (g.id === "steam") {
+      jobs.push(
+        steamData().then(
+          t => "Dữ liệu chính thức của Steam:\n" + t,
+          e => "[Không lấy được dữ liệu Steam: " + e.message + "]"
+        )
+      );
+    }
+
+    if (shouldResearch && g.id !== "steam") {
+      jobs.push(
+        googleResearch(g, question).then(
+          r => {
+            if (
+              /KHÔNG TÌM THẤY/i.test(r.notes) &&
+              r.notes.length < 60
+            ) {
+              return "Đã tra Google nhưng KHÔNG tìm thấy dữ kiện đáng tin cho câu hỏi này.";
+            }
+
+            return (
+              "Kết quả tra Google (lấy ngay lúc này):\n" +
+              r.notes +
+              (r.sources.length
+                ? "\nNguồn: " + r.sources.join(", ")
+                : "")
+            );
+          },
+          e => "[Chưa tra cứu được trên Google lúc này: " + e.message + "]"
+        )
+      );
+    }
+
     const res = await Promise.all(jobs);
+
     return out + (res.length ? "\n" + res.join("\n\n") : "");
   }));
 
-  return "NGỮ CẢNH GAME (dữ liệu tham khảo do hệ thống thu thập).\n" +
+  return (
+    "NGỮ CẢNH GAME (dữ liệu tham khảo từ hệ thống).\n" +
 
-return "NGỮ CẢNH GAME (dữ liệu tham khảo từ hệ thống).\n" +
+    "QUY TẮC TRẢ LỜI GAME:\n" +
 
-  "QUY TẮC TRẢ LỜI GAME:\n" +
+    "1. ĐƯỢC PHÉP sử dụng kiến thức nền sẵn có để giải thích luật chơi, chiến thuật phổ thông và hướng dẫn cơ bản.\n" +
 
-  "1. ĐƯỢC PHÉP sử dụng kiến thức nền sẵn có để giải thích luật chơi, chiến thuật phổ thông và hướng dẫn cơ bản.\n" +
+    "2. ƯU TIÊN dữ liệu tra cứu mới nhất và nguồn chính thức khi trả lời thông tin cụ thể về game.\n" +
 
-  "2. ƯU TIÊN dữ liệu tra cứu mới nhất và nguồn chính thức khi trả lời thông tin cụ thể về game.\n" +
+    "3. Không được tự sáng tác tên tướng, nhân vật, kỹ năng, trang bị, hiệu ứng, chỉ số hoặc cơ chế không tồn tại.\n" +
 
-  "3. Không được tự sáng tác tên tướng, nhân vật, kỹ năng, trang bị, hiệu ứng, chỉ số hoặc cơ chế không tồn tại.\n" +
+    "4. Phải phân biệt kiến thức nền của mô hình với dữ liệu đã được tra cứu. Không được nói rằng một thông tin đã được xác minh nếu chưa có nguồn xác nhận.\n" +
 
-  "4. Phải phân biệt kiến thức nền của mô hình với dữ liệu đã được tra cứu. Không được nói rằng một thông tin đã được xác minh nếu chưa có nguồn xác nhận.\n" +
+    "5. Nếu không chắc về tên kỹ năng, chỉ số, thời gian hồi chiêu hoặc cơ chế cụ thể, hãy nói rõ và không đoán.\n" +
 
-  "5. Nếu không chắc về tên kỹ năng, chỉ số, thời gian hồi chiêu hoặc cơ chế cụ thể, hãy nói rõ và không đoán.\n" +
+    "6. Nếu dữ liệu tra cứu không đầy đủ, vẫn được giải thích phần kiến thức nền đáng tin cậy, nhưng phải chỉ rõ phần nào chưa được xác minh.\n" +
 
-  "6. Nếu dữ liệu tra cứu không đầy đủ, vẫn được giải thích phần kiến thức nền đáng tin cậy, nhưng phải chỉ rõ phần nào chưa được xác minh.\n" +
+    "7. Không khẳng định meta, tỉ lệ thắng, bảng xếp hạng hoặc build tối ưu nếu thiếu dữ liệu cập nhật đáng tin cậy.\n" +
 
-  "7. Không khẳng định meta, tỉ lệ thắng, bảng xếp hạng hoặc build tối ưu nếu thiếu dữ liệu cập nhật đáng tin cậy.\n" +
+    "8. Nếu có dữ liệu Google Search, cuối câu trả lời ghi mục Nguồn với những nguồn đã cung cấp.\n" +
 
-  "8. Nếu có dữ liệu Google Search, cuối câu trả lời ghi mục Nguồn với những nguồn đã cung cấp.\n" +
+    "9. Nếu câu trả lời phụ thuộc phiên bản game, hãy hỏi phiên bản khi cần thiết.\n\n" +
 
-  "9. Nếu câu trả lời phụ thuộc phiên bản game, hãy hỏi phiên bản khi cần thiết.\n\n" +
-
-  "DỮ LIỆU GAME:\n" + parts.join("\n\n");
-  }
+    "DỮ LIỆU GAME:\n" +
+    parts.join("\n\n")
+  );
+}
 // ===== Tuỳ chỉnh Zeno =====
 // true  = server tự đoán chuyên gia (Marketing/Game/Học tập) theo từ khoá, kể cả khi chưa cài trong Store
 // false = chỉ chuyên gia đã cài trong Store mới hoạt động (giao diện lo việc này)
