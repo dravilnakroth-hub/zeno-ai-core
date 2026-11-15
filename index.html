@@ -1302,16 +1302,16 @@ const EN_MAP = {
   'Chat với Zeno Gốc': 'Chat with Zeno Core',
   'Lưu lịch sử trò chuyện': 'Chat history saved',
   'Đọc ảnh: 5 ảnh mỗi ngày': 'Image reading: 5 per day',
-  'Tạo ảnh: 3 ảnh mỗi ngày': 'Image creation: 3 per day',
+  'Tạo ảnh: 10 ảnh mỗi ngày': 'Image creation: 10 per day',
   'Chế độ giọng nói': 'Voice mode',
   '2 Dự án': '2 Projects',
   'Mở khoá 3 chuyên gia: Marketing, Game, Học Tập': 'Unlock 3 experts: Marketing, Game, Study',
   'Đọc ảnh: 50 ảnh mỗi ngày': 'Image reading: 50 per day',
-  'Tạo ảnh: 30 ảnh mỗi ngày': 'Image creation: 30 per day',
+  'Tạo ảnh: 25 ảnh mỗi ngày': 'Image creation: 25 per day',
   '10 Dự án': '10 Projects',
   'Ưu tiên khi server đông': 'Priority when servers are busy',
   'Đọc video': 'Video reading',
-  'Tạo ảnh: 100 ảnh mỗi ngày': 'Image creation: 100 per day',
+  'Tạo ảnh: 50 ảnh mỗi ngày': 'Image creation: 50 per day',
   'Đọc ảnh: không giới hạn': 'Image reading: unlimited',
   'Dự án không giới hạn': 'Unlimited Projects',
   'Dùng thử chuyên gia mới sớm nhất': 'Early access to new experts',
@@ -2428,13 +2428,13 @@ async function syncProject(id){
 const PLANS = [
   { id:'free', name:'Free', color:'#43c0a0', price:'0đ', per:'mãi mãi', tag:'',
     tagline:'Để làm quen với Zeno', includes:'',
-    features:['Chat với Zeno Gốc','Lưu lịch sử trò chuyện','Đọc ảnh: 5 ảnh mỗi ngày','Tạo ảnh: 3 ảnh mỗi ngày','Chế độ giọng nói','2 Dự án'] },
+    features:['Chat với Zeno Gốc','Lưu lịch sử trò chuyện','Đọc ảnh: 5 ảnh mỗi ngày','Tạo ảnh: 10 ảnh mỗi ngày','Chế độ giọng nói','2 Dự án'] },
   { id:'plus', name:'Zeno Plus', color:'#5aa9ff', price:'49.000đ', per:'/ tháng', tag:'Phổ biến',
     tagline:'Cho người dùng hằng ngày', includes:'Tất cả của Free, cộng thêm:',
-    features:['Mở khoá 3 chuyên gia: Marketing, Game, Học Tập','Đọc ảnh: 50 ảnh mỗi ngày','Tạo ảnh: 30 ảnh mỗi ngày','10 Dự án','Ưu tiên khi server đông'] },
+    features:['Mở khoá 3 chuyên gia: Marketing, Game, Học Tập','Đọc ảnh: 50 ảnh mỗi ngày','Tạo ảnh: 25 ảnh mỗi ngày','10 Dự án','Ưu tiên khi server đông'] },
   { id:'pro', name:'Zeno Pro', color:'#f2c14e', price:'99.000đ', per:'/ tháng', tag:'Mạnh nhất',
     tagline:'Mạnh nhất, không lo giới hạn', includes:'Tất cả của Plus, cộng thêm:',
-    features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
+    features:['Đọc video','Tạo ảnh: 50 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
 const APP_VERSION = '2026-11-15-j';
@@ -2590,9 +2590,9 @@ async function deleteGalleryImage(){
 // ===== Quyền của từng gói =====
 // Đổi số ở đây là đổi giới hạn. Infinity = không giới hạn.
 const PLAN_LIMITS = {
-  free: { readImg:5,        genImg:3,   projects:2,        experts:false, video:false },
-  plus: { readImg:50,       genImg:30,  projects:10,       experts:true,  video:false },
-  pro:  { readImg:Infinity, genImg:100, projects:Infinity, experts:true,  video:true  }
+  free: { readImg:5,        genImg:10,   projects:2,        experts:false, video:false },
+  plus: { readImg:50,       genImg:25,  projects:10,       experts:true,  video:false },
+  pro:  { readImg:Infinity, genImg:50, projects:Infinity, experts:true,  video:true  }
 };
 // true = hiện nút "Thử gói" để cậu tự test các gói. NHỚ ĐỔI THÀNH false trước khi mở bán thật.
 const PLAN_TEST_MODE = true;
