@@ -524,7 +524,7 @@ async function buildGameContext(messages) {
   if (!games.length) return null;
   const lastUser = messages.filter(m => m.role === "user" && !m.ctx).slice(-1)[0];
   const question = String((lastUser && lastUser.content) || "").trim();
-  const shouldResearch = question.length >= 12;
+  const shouldResearch = question.length >= 8;
 
   const parts = await Promise.all(games.map(async g => {
     const head = "== " + g.name + " (" + g.platforms.join(", ") + ") ==\nQuy tắc riêng của game này: " + g.specialRules.join(" ");
@@ -537,12 +537,12 @@ async function buildGameContext(messages) {
       e => ({ t: "[Không lấy được dữ liệu Steam: " + e.message + "]", ok: false, src: "failed" })));
     if (shouldResearch && g.id !== "steam") {
       jobs.push(googleResearch(g, question).then(r => {
-        if (/KHÔNG TÌM THẤY/i.test(r.notes) && r.notes.length < 60) return { t: "Đã tra Google nhưng KHÔNG tìm thấy dữ kiện đáng tin cho câu hỏi này.", ok: false, src: "notfound" };
+        if (/KHÔNG TÌM THẤY/i.test(r.notes) && r.notes.length < 60) return { t: "Đã tra Google nhưng KHÔNG tìm thấy dữ kiện đáng tin cho câu hỏi này.", ok: false, src: "notfound", why: "Google không tìm thấy dữ kiện đáng tin" };
         return { t: "Kết quả tra Google (lấy ngay lúc này):\n" + r.notes + (r.sources.length ? "\nNguồn: " + r.sources.join(", ") : ""), ok: true, src: "Google" };
       }, e => ({ t: "[Chưa tra cứu được trên Google lúc này: " + e.message + "]", ok: false, src: "failed", why: "Google: " + String(e.message).slice(0, 140) })));
     }
     const res = await Promise.all(jobs);
-    return { text: head + (res.length ? "\n" + res.map(r => r.t).join("\n\n") : ""), ok: res.some(r => r.ok), src: res.map(r => r.src).concat(shouldResearch ? [] : ["skipped"]), why: res.map(r => r.why).filter(Boolean).join("; ") };
+    return { text: head + (res.length ? "\n" + res.map(r => r.t).join("\n\n") : ""), ok: res.some(r => r.ok), src: res.map(r => r.src).concat(shouldResearch ? [] : ["skipped"]), why: res.map(r => r.why).filter(Boolean).join("; ") || (shouldResearch ? "" : "câu hỏi quá ngắn nên chưa tra") };
   }));
 
   const verified = parts.every(p => p.ok);
