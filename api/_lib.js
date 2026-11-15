@@ -6,9 +6,9 @@ export const SB_KEY = process.env.SUPABASE_SERVICE_KEY || "";
 // Số 0 = không được dùng. Infinity = không giới hạn.
 // chat/video là mức chặn lạm dụng (giao diện không công bố con số này), chỉnh tuỳ ý.
 export const PLAN_LIMITS = {
-  free: { chat: 300,  genImg: 3,   readImg: 5,        video: 0 },
-  plus: { chat: 1500, genImg: 30,  readImg: 50,       video: 0 },
-  pro:  { chat: 5000, genImg: 100, readImg: Infinity, video: 20 }
+  free: { chat: 300,  genImg: 10,  readImg: 5,        video: 0 },
+  plus: { chat: 1500, genImg: 25,  readImg: 50,       video: 0 },
+  pro:  { chat: 5000, genImg: 50,  readImg: Infinity, video: 20 }
 };
 
 const KIND_NAME = { chat: "nhắn tin", genImg: "tạo ảnh", readImg: "đọc ảnh", video: "đọc video" };
@@ -89,7 +89,7 @@ export async function guard(req, res, kind) {
   const plan = await getPlan(user.id);
   const limit = (PLAN_LIMITS[plan] || PLAN_LIMITS.free)[kind];
   if (!(limit > 0)) {
-    res.status(403).json({ error: { message: kind === "video" ? "Đọc video chỉ có ở gói Zeno Pro." : "Gói của mày không có tính năng này." } });
+    res.status(403).json({ error: { message: kind === "video" ? "Đọc video chỉ có ở gói Zeno Pro." : "Gói của cậu không có tính năng này." } });
     return null;
   }
   let ok = false;
@@ -99,7 +99,7 @@ export async function guard(req, res, kind) {
     return null;
   }
   if (!ok) {
-    res.status(429).json({ error: { message: "Hôm nay mày dùng hết lượt " + KIND_NAME[kind] + " của gói " + plan.toUpperCase() + " rồi. Mai được làm mới, hoặc nâng cấp để có thêm." } });
+    res.status(429).json({ error: { message: "Hôm nay cậu dùng hết lượt " + KIND_NAME[kind] + " của gói " + plan.toUpperCase() + " rồi. Mai được làm mới, hoặc nâng cấp để có thêm." } });
     return null;
   }
   return { user, plan };
