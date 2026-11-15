@@ -2220,7 +2220,7 @@ function setCurrentConvId(id){
 
 function personaBubbleHtml(bodyHtml, time, personaId, meta){
   if(meta && meta.games && meta.games.length){
-    bodyHtml += '<div class="zeno-note '+(meta.verified?'ok':'warn')+'">'+(meta.verified ? tr('🔎 Đã tra cứu nguồn bên ngoài') : tr('⚠️ Chưa tra cứu được nguồn, thông tin có thể chưa chính xác'))+'</div>';
+    bodyHtml += '<div class="zeno-note '+(meta.verified?'ok':'warn')+'">'+(meta.verified ? tr('🔎 Đã tra cứu nguồn bên ngoài') : tr('⚠️ Chưa tra cứu được nguồn, thông tin có thể chưa chính xác'))+(!meta.verified && meta.reason ? ' <span style="opacity:.75">('+escapeHtml(meta.reason)+')</span>' : '')+'</div>';
   }
   const p = personaId ? PERSONAS.find(x => x.id === personaId && x.id !== 'default') : null;
   if(!p) return '<div class="bubble">'+bodyHtml+'<span class="msg-time">'+(time||'')+'</span></div>';
@@ -2437,7 +2437,7 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
-const APP_VERSION = '2026-11-08-i';
+const APP_VERSION = '2026-11-15-j';
 const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
 function getPlanExpiry(){
   try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
