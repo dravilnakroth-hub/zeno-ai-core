@@ -533,7 +533,8 @@ async function groqResearch(game, question) {
     body: JSON.stringify({
       model: GROQ_MODEL,
       temperature: 0.2,
-      max_completion_tokens: 1500,
+      max_completion_tokens: 1100,
+      reasoning_effort: "low",
       messages: [{ role: "user", content: prompt }],
       tools: [{ type: "browser_search" }]
     })
@@ -818,6 +819,12 @@ export default async function handler(req, res) {
           groqResponse = await callGroq(fitMessages(messages, 11000), false);
           data = await groqResponse.json();
         } else if (!groqResponse.ok && /too large|tokens per minute|TPM/i.test(firstErr)) {
+          // Hết lượt token/phút (thường do vừa tra cứu web xong): đợi đúng số giây Groq báo rồi thử lại
+          const m = /try again in ([\d.]+)\s*s/i.exec(firstErr);
+          const waitMs = m ? Math.ceil(parseFloat(m[1]) * 1000) + 700 : 0;
+          if (waitMs && waitMs <= 22000 && Date.now() - T0 + waitMs < 38000) {
+            await new Promise(r => setTimeout(r, waitMs));
+          }
           groqResponse = await callGroq(fitMessages(messages, 6000), true);
           data = await groqResponse.json();
         }
