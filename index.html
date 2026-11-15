@@ -178,6 +178,8 @@
     border:1px solid color-mix(in srgb, var(--pc) 60%, transparent);
     box-shadow:0 2px 16px color-mix(in srgb, var(--pc) 22%, transparent);
   }
+  .zeno-note{margin-top:8px;font-size:12px;line-height:1.4;color:var(--text-muted);}
+  .zeno-note.warn{color:#f2c14e;}
   .persona-tag{display:block;font-size:11.5px;font-weight:700;color:var(--pc);margin-bottom:4px;letter-spacing:.2px;}
   .msg-row.user .bubble{
     background:linear-gradient(135deg,var(--teal),var(--sage));
@@ -1333,6 +1335,8 @@ const EN_MAP = {
   'Thử gói': 'Try plan',
   'Đặt lại lượt hôm nay': "Reset today's usage",
   'Cậu cần đăng nhập để chat với Zeno. Đăng xuất rồi đăng nhập lại nếu cậu đã có tài khoản.': 'You need to sign in to chat with Zeno. If you already have an account, sign out and sign in again.',
+  '🔎 Đã tra cứu nguồn bên ngoài': '🔎 Checked outside sources',
+  '⚠️ Chưa tra cứu được nguồn, thông tin có thể chưa chính xác': "⚠️ Couldn't check sources, information may be inaccurate",
   'Zeno Gốc': 'Zeno Core',
   'Tính cách gốc, tám chuyện, cà khịa nhẹ': 'The original: chatty, a little cheeky',
   'Tư vấn content, quảng cáo, xây thương hiệu': 'Content, ads and branding advice',
@@ -1782,6 +1786,7 @@ function getTimeStr(){
 }
 
 let lastReplyPersona = null;
+let lastReplyMeta = null;
 async function askZeno(text){
   const detected = detectPersonaForText(text);
   lastReplyPersona = detected ? detected.id : null;
@@ -1801,6 +1806,7 @@ async function askZeno(text){
     const errMsg = (data.error && data.error.message) ? data.error.message : tr("Lỗi không xác định");
     throw new Error(errMsg);
   }
+  lastReplyMeta = data.zeno || null;
   const reply = data.choices[0].message.content;
   chatHistory.push({role:"assistant", content: reply});
   return reply;
@@ -2067,7 +2073,7 @@ async function sendMessage(){
     const botRow = document.createElement('div');
     botRow.className = 'msg-row bot';
     const replyPersona = lastReplyPersona;
-    botRow.innerHTML = personaBubbleHtml(renderRichText(reply), botTime, replyPersona);
+    botRow.innerHTML = personaBubbleHtml(renderRichText(reply), botTime, replyPersona, lastReplyMeta);
     messages.appendChild(botRow);
     messages.scrollTop = messages.scrollHeight;
 
@@ -2212,7 +2218,10 @@ function setCurrentConvId(id){
   localStorage.setItem('zeno_current_conv', id);
 }
 
-function personaBubbleHtml(bodyHtml, time, personaId){
+function personaBubbleHtml(bodyHtml, time, personaId, meta){
+  if(meta && meta.games && meta.games.length){
+    bodyHtml += '<div class="zeno-note '+(meta.verified?'ok':'warn')+'">'+(meta.verified ? tr('🔎 Đã tra cứu nguồn bên ngoài') : tr('⚠️ Chưa tra cứu được nguồn, thông tin có thể chưa chính xác'))+'</div>';
+  }
   const p = personaId ? PERSONAS.find(x => x.id === personaId && x.id !== 'default') : null;
   if(!p) return '<div class="bubble">'+bodyHtml+'<span class="msg-time">'+(time||'')+'</span></div>';
   return '<div class="bubble persona" style="--pc:'+p.color+';"><span class="persona-tag">'+p.emoji+' '+tr(p.name)+'</span>'+bodyHtml+'<span class="msg-time">'+(time||'')+'</span></div>';
@@ -2428,7 +2437,7 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 100 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
-const APP_VERSION = '2026-11-08-h';
+const APP_VERSION = '2026-11-08-i';
 const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
 function getPlanExpiry(){
   try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
