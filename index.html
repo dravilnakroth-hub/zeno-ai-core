@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zeno</title>
+<meta name="theme-color" content="#0a0f0d">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zeno">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
@@ -2437,7 +2445,12 @@ const PLANS = [
     features:['Đọc video','Tạo ảnh: 50 ảnh mỗi ngày','Đọc ảnh: không giới hạn','Dự án không giới hạn','Dùng thử chuyên gia mới sớm nhất','Hỗ trợ ưu tiên'] }
 ];
 
-const APP_VERSION = '2026-11-15-j';
+const APP_VERSION = '2026-11-15-k';
+
+// PWA: đăng ký service worker (chỉ chạy trên https hoặc localhost)
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+}
 const TRIAL_DAYS = 30; // gói thử chỉ dùng được 30 ngày
 function getPlanExpiry(){
   try{ return parseInt(localStorage.getItem('zeno_plan_expires') || '0', 10) || 0; }catch(e){ return 0; }
@@ -2992,3 +3005,4 @@ if(sb){
 
 </body>
 </html>
+  
